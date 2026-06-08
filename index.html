@@ -23,7 +23,13 @@
       </div>
     </header>
 
-    <main class="wrap" id="calculator">
+    <main class="wrap">
+      <nav class="tabs" aria-label="View">
+        <button class="tab is-on" type="button" data-tab="calc" data-i18n="tabCalc" aria-selected="true">Calculator</button>
+        <button class="tab" type="button" data-tab="rank" data-i18n="tabRank" aria-selected="false">My Rank</button>
+      </nav>
+
+      <div id="calculator" class="panel" data-panel="calc">
       <p class="tagline" data-i18n="tagline">Load plates, tap your reps, get your max.</p>
 
       <div id="liftCards" class="cards"></div>
@@ -86,6 +92,21 @@
         </div>
 
         <button id="copyBtn" class="btn-ghost" type="button" data-i18n="copy">Copy result</button>
+      </section>
+      </div>
+
+      <section id="panel-rank" class="panel" data-panel="rank" hidden>
+        <p class="tagline" data-i18n="rankIntro">See where your total stands among everyone who has visited.</p>
+        <button id="rankBtn" class="more-toggle" type="button" data-i18n="seeRank">See my rank</button>
+        <div id="rankResult" class="rank-result" hidden>
+          <div class="rank-big">
+            <strong id="rankPct">&mdash;</strong>
+            <span class="muted small" data-i18n="rankPctLabel">top percentile</span>
+          </div>
+          <p id="rankCity" class="rank-city"></p>
+          <p id="rankMeta" class="muted small"></p>
+          <p class="muted small" data-i18n="rankNote">Anonymous. Region is coarse (city/country from your connection); your IP is never stored.</p>
+        </div>
       </section>
 
       <footer class="foot">

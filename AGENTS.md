@@ -13,9 +13,9 @@
 
 ## NEVER
 
-- Never add user accounts, saved records, tracking, or any data storage without an explicit privacy review + scope update
-- Never introduce a database or backend state (the project is intentionally stateless)
-- Never add an npm dependency or a build/bundler step to the MVP
+- Never add user accounts or personal login — ranking records stay anonymous (no name, no email, no user id)
+- Never store the raw client IP — region (city/country) comes from `request.cf` and the IP is discarded
+- Never add an npm dependency or a build/bundler step to the front-end MVP (D1 access runs server-side in Pages Functions)
 - Never hardcode an AdSense publisher line — `ads.txt` stays a placeholder until AdSense approval
 - Never present demo percentiles as real population ranking
 

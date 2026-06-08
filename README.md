@@ -12,11 +12,10 @@ Static Cloudflare Pages MVP for a squat, bench, and deadlift one-rep max calcula
 
 ## Non-goals
 
-- No account system.
-- No database.
-- No true city or neighborhood leaderboard.
+- No account system — ranking records are anonymous (no name, email, or user id).
+- No raw IP stored — leaderboards use coarse city/country from the connection only, no street-level tracking.
 - No medical, coaching, or competition judging claim.
-- No dependency install for the MVP.
+- No build step or npm dependency in the front-end MVP (D1 runs server-side in Pages Functions).
 
 ## Local verification
 

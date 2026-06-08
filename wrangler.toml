@@ -1,0 +1,10 @@
+name = "my1rm"
+compatibility_date = "2026-06-09"
+pages_build_output_dir = "."
+
+# D1 database for anonymous visitor ranking.
+# database_id is filled in after you run `npx wrangler d1 create my1rm-db`.
+[[d1_databases]]
+binding = "DB"
+database_name = "my1rm-db"
+database_id = "6ea7f6e3-a1b2-47c6-a232-4fed7bbf16bd"

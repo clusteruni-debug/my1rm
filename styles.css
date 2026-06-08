@@ -310,6 +310,64 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- tabs + rank ---- */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.tab.is-on {
+  color: var(--text);
+  border-bottom-color: var(--primary);
+}
+
+.panel[hidden] { display: none; }
+
+.rank-result {
+  margin-top: 18px;
+  padding: 24px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-align: center;
+}
+
+.rank-result[hidden] { display: none; }
+
+.rank-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.rank-big strong {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-city {
+  margin: 6px 0 2px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
 /* ---- progressive disclosure ---- */
 .more-toggle {
   width: 100%;

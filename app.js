@@ -299,6 +299,13 @@
       locTitle: '추정 위치', locManual: '수동 또는 없음', locChecking: '위치 확인 중...',
       locHint: '동의 시 Cloudflare 기반 대략적 국가/도시. 저장 안 함.', useLoc: '위치 사용',
       copy: '결과 복사', copied: '복사됨',
+      tabCalc: '계산기', tabRank: '내 순위',
+      rankIntro: '지금까지 다녀간 사람들 중 네 총합이 어디쯤인지 봐.',
+      seeRank: '내 순위 보기', rankLoading: '계산 중...',
+      rankTop: '상위', rankPctLabel: '전체에서',
+      rankFirst: '네가 첫 기록이야! 사람이 쌓이면 순위가 정확해져.',
+      rankError: '순위를 못 불러왔어. 잠깐 뒤 다시 눌러봐.',
+      rankNote: '익명이야. 지역은 접속 기준 대략(도시/나라)이고, IP는 저장 안 해.',
       demoNote: '데모 백분위 모델 — 실제 지역 순위 아님.',
       footer: 'My1RM은 추정 도구일 뿐, 코칭·의료·심판 조언이 아님.',
       privacy: '개인정보', terms: '약관', methodology: '계산 방식',
@@ -317,6 +324,13 @@
       locTitle: 'Estimated location', locManual: 'Manual or unavailable', locChecking: 'Checking location...',
       locHint: 'With consent, a coarse Cloudflare country/city. Not stored.', useLoc: 'Use location',
       copy: 'Copy result', copied: 'Copied',
+      tabCalc: 'Calculator', tabRank: 'My Rank',
+      rankIntro: 'See where your total lands among everyone who has visited.',
+      seeRank: 'See my rank', rankLoading: 'Calculating...',
+      rankTop: 'Top', rankPctLabel: 'overall',
+      rankFirst: 'You are the first! Ranks sharpen as people add theirs.',
+      rankError: 'Could not load rank. Try again in a moment.',
+      rankNote: 'Anonymous. Region is coarse (city/country from your connection); your IP is never stored.',
       demoNote: 'Demo percentile model — not a real local ranking.',
       footer: 'My1RM is an estimate tool, not coaching, medical, or judging advice.',
       privacy: 'Privacy', terms: 'Terms', methodology: 'Methodology',
@@ -611,6 +625,70 @@
     }
   }
 
+  function switchTab(tab) {
+    const target = tab === 'rank' ? 'rank' : 'calc';
+    document.querySelectorAll('[data-panel]').forEach((panel) => {
+      panel.hidden = panel.getAttribute('data-panel') !== target;
+    });
+    document.querySelectorAll('.tab').forEach((btn) => {
+      const on = btn.getAttribute('data-tab') === target;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function renderRank(data) {
+    dom.rankResult.hidden = false;
+    if (!data || data.error) {
+      dom.rankPct.textContent = '—';
+      dom.rankCity.textContent = '';
+      dom.rankMeta.textContent = t('rankError');
+      return;
+    }
+    if (data.percentile == null || data.totalCount <= 1) {
+      dom.rankPct.textContent = '★';
+      dom.rankCity.textContent = t('rankFirst');
+      dom.rankMeta.textContent = '';
+      return;
+    }
+    const top = Math.max(1, 100 - data.percentile);
+    dom.rankPct.textContent = `${t('rankTop')} ${top}%`;
+    if (data.city && data.cityTotal) {
+      dom.rankCity.textContent = `${data.city} · ${data.cityRank}/${data.cityTotal}`;
+    } else {
+      dom.rankCity.textContent = '';
+    }
+    dom.rankMeta.textContent = lang === 'ko'
+      ? `전체 ${data.totalCount}명 참여`
+      : `${data.totalCount} lifters total`;
+  }
+
+  async function fetchRank() {
+    const profile = calculateProfile(buildInput());
+    dom.rankBtn.disabled = true;
+    dom.rankBtn.textContent = t('rankLoading');
+    try {
+      const response = await fetch('/api/rank', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          total_kg: profile.totalKg,
+          squat_kg: profile.lifts.squat.oneRmKg,
+          bench_kg: profile.lifts.bench.oneRmKg,
+          deadlift_kg: profile.lifts.deadlift.oneRmKg,
+          sex: state.sex,
+          age_bucket: getAgeBucket(state.age).label,
+        }),
+      });
+      renderRank(await response.json());
+    } catch (_error) {
+      renderRank({ error: true });
+    } finally {
+      dom.rankBtn.disabled = false;
+      dom.rankBtn.textContent = t('seeRank');
+    }
+  }
+
   function setupBrowser() {
     dom.cards = document.getElementById('liftCards');
     dom.resultRows = document.getElementById('resultRows');
@@ -627,6 +705,11 @@
     dom.ratioLine = document.getElementById('ratioLine');
     dom.locLabel = document.getElementById('locLabel');
     dom.copyBtn = document.getElementById('copyBtn');
+    dom.rankBtn = document.getElementById('rankBtn');
+    dom.rankResult = document.getElementById('rankResult');
+    dom.rankPct = document.getElementById('rankPct');
+    dom.rankCity = document.getElementById('rankCity');
+    dom.rankMeta = document.getElementById('rankMeta');
 
     setLang(detectLang());
 
@@ -651,6 +734,10 @@
     document.getElementById('bwPlus').addEventListener('click', () => { state.bodyweight = clamp(Math.round((state.bodyweight + bwStep()) * 10) / 10, 30, 400); renderValues(); });
     dom.copyBtn.addEventListener('click', copyResult);
     document.getElementById('useLoc').addEventListener('click', useLocation);
+    document.querySelectorAll('.tab').forEach((tabBtn) => {
+      tabBtn.addEventListener('click', () => switchTab(tabBtn.getAttribute('data-tab')));
+    });
+    dom.rankBtn.addEventListener('click', fetchRank);
 
     const prefs = readPrivacyPreferences();
     if (prefs && prefs.location) {

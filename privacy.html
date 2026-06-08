@@ -18,10 +18,11 @@
     <main class="legal-page">
       <p class="eyebrow">Privacy</p>
       <h1>Privacy policy</h1>
-      <p>Last updated: 2026-06-08</p>
+      <p>Last updated: 2026-06-09</p>
       <p>
-        My1RM is a static MVP. The calculator runs in your browser and does not
-        require an account. Lift inputs are not sent to a database by this version.
+        My1RM runs in your browser and does not require an account. The calculator
+        itself works entirely on your device. If you choose to see your rank, one
+        anonymous record is saved — see "Ranking records" below.
       </p>
       <h2>Local privacy preferences</h2>
       <p>
@@ -29,14 +30,21 @@
         in your browser's localStorage so the banner does not need to appear on
         every visit. This preference is not sent to a database by the MVP.
       </p>
+      <h2>Ranking records</h2>
+      <p>
+        If you tap "See my rank", My1RM saves one anonymous record: your estimated
+        squat, bench, deadlift, and total one-rep max, your selected sex and age
+        band, and a coarse region (city and country) derived from your connection.
+        No name, email, account, or raw IP address is stored — the region is read
+        from Cloudflare's edge metadata and the IP itself is discarded. These
+        records are only used to compute the "top %" and city standings shown back
+        to visitors.
+      </p>
       <h2>Location</h2>
       <p>
-        When hosted on Cloudflare Pages, My1RM can call a lightweight location
-        endpoint that reads Cloudflare request metadata such as country, region,
-        city, timezone, and data center code. This is used only to label the
-        current result as a coarse estimate. The location endpoint is called only
-        after you choose to allow the location label. The MVP does not store IP
-        addresses or create a local leaderboard.
+        My1RM can call a lightweight location endpoint that reads Cloudflare request
+        metadata such as country, region, and city to label your result as a coarse
+        estimate. The raw IP address is never stored.
       </p>
       <h2>Cookies</h2>
       <p>
