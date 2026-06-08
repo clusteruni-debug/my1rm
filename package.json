@@ -1,0 +1,9 @@
+{
+  "name": "my1rm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static Cloudflare Pages MVP for squat, bench, and deadlift 1RM estimates.",
+  "scripts": {
+    "check": "node --check app.js && node --check functions/api/location.js && node tests/calculator.test.js"
+  }
+}

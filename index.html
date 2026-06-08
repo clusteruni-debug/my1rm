@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My1RM - Squat, Bench, Deadlift Calculator</title>
+    <meta
+      name="description"
+      content="Estimate your squat, bench, and deadlift one-rep max, total, bodyweight ratios, and demo percentile benchmark."
+    >
+    <meta property="og:title" content="My1RM - SBD 1RM Calculator">
+    <meta
+      property="og:description"
+      content="A fast, privacy-conscious one-rep max calculator for squat, bench, and deadlift."
+    >
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="My1RM home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>My1RM</span>
+      </a>
+      <nav class="topnav" aria-label="Main navigation">
+        <a href="#calculator">Calculator</a>
+        <a href="#benchmark">Benchmark</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Squat. Bench. Deadlift.</p>
+          <h1 id="page-title">Estimate your 1RM and see where your total stands.</h1>
+          <p class="lede">
+            My1RM turns your working sets into estimated maxes, SBD total, bodyweight
+            ratios, and a transparent demo percentile. No account, no saved lifting log.
+          </p>
+        </div>
+
+        <div class="barbell-visual" aria-label="Barbell strength meter">
+          <div class="plate-stack plate-stack-left" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="barbell-shaft" aria-hidden="true"></div>
+          <div class="plate-stack plate-stack-right" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="dial">
+            <span class="dial-value" id="heroTotal">0</span>
+            <span class="dial-label">total kg</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tool-layout" id="calculator">
+        <form class="calculator-panel" id="calculatorForm">
+          <div class="section-heading">
+            <p class="eyebrow">Calculator</p>
+            <h2>Your working sets</h2>
+          </div>
+
+          <fieldset class="profile-grid">
+            <legend>Profile</legend>
+            <label>
+              Sex
+              <select id="sex" name="sex">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </label>
+            <label>
+              Age
+              <input id="age" name="age" type="number" min="13" max="90" value="30" inputmode="numeric">
+            </label>
+            <label>
+              Bodyweight
+              <input id="bodyweight" name="bodyweight" type="number" min="30" max="250" step="0.1" value="80" inputmode="decimal">
+            </label>
+            <label>
+              Unit
+              <select id="unit" name="unit">
+                <option value="kg">kg</option>
+                <option value="lb">lb</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset class="lift-grid">
+            <legend>Lift sets</legend>
+            <div class="lift-row">
+              <div>
+                <strong>Squat</strong>
+                <span>back squat</span>
+              </div>
+              <label>
+                Weight
+                <input id="squatWeight" name="squatWeight" type="number" min="0" step="0.5" value="140" inputmode="decimal">
+              </label>
+              <label>
+                Reps
+                <input id="squatReps" name="squatReps" type="number" min="1" max="15" value="5" inputmode="numeric">
+              </label>
+            </div>
+            <div class="lift-row">
+              <div>
+                <strong>Bench</strong>
+                <span>flat barbell</span>
+              </div>
+              <label>
+                Weight
+                <input id="benchWeight" name="benchWeight" type="number" min="0" step="0.5" value="100" inputmode="decimal">
+              </label>
+              <label>
+                Reps
+                <input id="benchReps" name="benchReps" type="number" min="1" max="15" value="5" inputmode="numeric">
+              </label>
+            </div>
+            <div class="lift-row">
+              <div>
+                <strong>Deadlift</strong>
+                <span>conventional or sumo</span>
+              </div>
+              <label>
+                Weight
+                <input id="deadliftWeight" name="deadliftWeight" type="number" min="0" step="0.5" value="180" inputmode="decimal">
+              </label>
+              <label>
+                Reps
+                <input id="deadliftReps" name="deadliftReps" type="number" min="1" max="15" value="3" inputmode="numeric">
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="action-row">
+            <button class="primary-action" type="submit">Calculate</button>
+            <button class="ghost-action" type="button" id="copyResult">Copy result</button>
+          </div>
+
+          <p class="form-note" id="formNote">
+            Estimates work best for 1 to 10 reps. Higher reps are shown, but confidence drops.
+          </p>
+        </form>
+
+        <aside class="results-panel" aria-live="polite">
+          <div class="section-heading">
+            <p class="eyebrow">Result</p>
+            <h2>Estimated maxes</h2>
+          </div>
+
+          <div class="result-stack" id="liftResults"></div>
+
+          <div class="total-band">
+            <span>Total</span>
+            <strong id="totalValue">0 kg</strong>
+            <small id="totalRatio">0.00x bodyweight</small>
+          </div>
+
+          <div class="benchmark-block" id="benchmark">
+            <div>
+              <p class="eyebrow">Demo benchmark</p>
+              <h3 id="percentileLabel">Waiting for input</h3>
+            </div>
+            <div class="percentile-meter" aria-label="Percentile meter">
+              <span id="percentileFill"></span>
+            </div>
+            <p id="benchmarkCopy">
+              Enter your lifts to compare against a transparent demo model inspired by
+              competition-style strength standards.
+            </p>
+          </div>
+
+          <div class="location-block">
+            <span>Estimated location</span>
+            <strong id="locationLabel">Manual or unavailable</strong>
+            <small>
+              Click below to allow a coarse Cloudflare country/city estimate. It is not stored by this static MVP.
+            </small>
+            <button class="mini-action" type="button" id="useLocation">Use estimated location</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <article>
+          <p class="eyebrow">AdSense-safe content plan</p>
+          <h2>What this site can grow into</h2>
+          <p>
+            My1RM can add evergreen guides around one-rep max formulas, bodyweight
+            ratios, beginner standards, competition data caveats, and training logs
+            without collecting sensitive health records.
+          </p>
+        </article>
+        <div class="guide-list">
+          <a href="methodology.html">How the estimate works</a>
+          <a href="privacy.html">Privacy and location use</a>
+          <a href="terms.html">Terms and safety disclaimer</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>My1RM is an estimate tool, not coaching, medical, or competition judging advice.</span>
+      <nav aria-label="Footer navigation">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="methodology.html">Methodology</a>
+      </nav>
+    </footer>
+
+    <section class="consent-banner" id="privacyConsent" hidden aria-label="Privacy preferences">
+      <div>
+        <strong>Privacy choices</strong>
+        <p>
+          The calculator runs in your browser. We only request a coarse IP-based
+          location label if you allow it. Ads are not enabled yet, but this site
+          is prepared for an AdSense cookie notice.
+        </p>
+      </div>
+      <div class="consent-actions">
+        <button class="ghost-action" type="button" id="essentialOnly">Essential only</button>
+        <button class="primary-action" type="button" id="allowLocation">Allow location label</button>
+      </div>
+    </section>
+  </body>
+</html>
