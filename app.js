@@ -289,6 +289,7 @@
       tagline: '원판 끼우듯 무게 올리고 횟수만 누르면 끝.',
       squat: '스쿼트', bench: '벤치', deadlift: '데드리프트',
       reps: '횟수', clear: '비우기',
+      resultTitle: '예상 1RM',
       total: '총합',
       more: '상세 보기', less: '접기',
       sex: '성별', male: '남', female: '여', age: '나이', bodyweight: '체중',
@@ -306,6 +307,7 @@
       tagline: 'Load plates, tap your reps, get your max.',
       squat: 'Squat', bench: 'Bench', deadlift: 'Deadlift',
       reps: 'Reps', clear: 'Clear',
+      resultTitle: 'Estimated 1RM',
       total: 'Total',
       more: 'More detail', less: 'Hide',
       sex: 'Sex', male: 'M', female: 'F', age: 'Age', bodyweight: 'Bodyweight',
@@ -416,7 +418,7 @@
       const unitTag = el('span', { class: 'w-unit', 'data-unit': '', text: state.unit });
       const head = el('header', { class: 'card-top' }, [
         el('h2', { i18n: id }),
-        el('span', { class: 'w-display' }, [weightValue, unitTag]),
+        el('span', { class: 'w-display', 'data-edit': id }, [weightValue, unitTag]),
       ]);
 
       const plateRow = el('div', { class: 'plates' });
@@ -526,7 +528,46 @@
     renderValues();
   }
 
+  function startWeightEdit(id, displayNode) {
+    const input = el('input', { class: 'w-input', type: 'text', inputmode: 'decimal' });
+    input.value = fmt(state.lift[id].weight);
+    input.setAttribute('aria-label', `${t(id)} ${state.unit}`);
+    displayNode.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const commit = () => {
+      if (done) return;
+      done = true;
+      const raw = Number(input.value);
+      const next = Number.isFinite(raw)
+        ? Math.min(MAX_WEIGHT, Math.max(0, Math.round(raw * 100) / 100))
+        : state.lift[id].weight;
+      state.lift[id].weight = next;
+      buildCards();
+      applyStaticI18n();
+      renderValues();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (keyEvent) => {
+      if (keyEvent.key === 'Enter') {
+        keyEvent.preventDefault();
+        input.blur();
+      } else if (keyEvent.key === 'Escape') {
+        done = true;
+        buildCards();
+        applyStaticI18n();
+        renderValues();
+      }
+    });
+  }
+
   function onCardClick(event) {
+    const editTarget = event.target.closest('[data-edit]');
+    if (editTarget) {
+      startWeightEdit(editTarget.getAttribute('data-edit'), editTarget);
+      return;
+    }
     const target = event.target.closest('button');
     if (!target) return;
     const card = target.closest('[data-lift]');

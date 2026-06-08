@@ -159,6 +159,32 @@ button {
   font-weight: 600;
 }
 
+.w-display[data-edit] {
+  cursor: pointer;
+  padding: 2px 8px;
+  margin: -2px -8px;
+  border-radius: var(--radius-sm);
+  border-bottom: 2px dotted var(--border-strong);
+  transition: background-color 120ms ease;
+}
+
+.w-display[data-edit]:hover {
+  background: var(--hover);
+}
+
+.w-input {
+  width: 104px;
+  padding: 2px 8px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
 .plates {
   display: flex;
   flex-wrap: wrap;
@@ -202,8 +228,8 @@ button {
 }
 
 .rep-btns {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
   gap: 6px;
 }
 
@@ -543,6 +569,32 @@ button {
 .legal-page a {
   color: var(--primary);
   border-bottom: 1px solid var(--primary);
+}
+
+@media (min-width: 880px) {
+  .wrap { width: min(960px, 100%); }
+
+  #calculator {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 322px;
+    column-gap: 24px;
+    align-items: start;
+  }
+
+  .tagline { grid-column: 1 / -1; }
+  .cards { grid-column: 1; }
+
+  .result {
+    grid-column: 2;
+    position: sticky;
+    top: 80px;
+    margin-top: 0;
+  }
+
+  .more-toggle,
+  .advanced { grid-column: 1; }
+
+  .foot { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
