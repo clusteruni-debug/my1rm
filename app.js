@@ -289,7 +289,7 @@
       tagline: '원판 끼우듯 무게 올리고 횟수만 누르면 끝.',
       squat: '스쿼트', bench: '벤치', deadlift: '데드리프트',
       reps: '횟수', clear: '비우기',
-      total: '총합', estMax: '예상 1RM',
+      total: '총합',
       more: '상세 보기', less: '접기',
       sex: '성별', male: '남', female: '여', age: '나이', bodyweight: '체중',
       percentile: '백분위', ratioLabel: '체중 대비',
@@ -306,7 +306,7 @@
       tagline: 'Load plates, tap your reps, get your max.',
       squat: 'Squat', bench: 'Bench', deadlift: 'Deadlift',
       reps: 'Reps', clear: 'Clear',
-      total: 'Total', estMax: 'Est. 1RM',
+      total: 'Total',
       more: 'More detail', less: 'Hide',
       sex: 'Sex', male: 'M', female: 'F', age: 'Age', bodyweight: 'Bodyweight',
       percentile: 'Percentile', ratioLabel: 'of bodyweight',
@@ -340,6 +340,7 @@
   };
 
   let lang = 'en';
+  let locReqId = 0;
 
   function detectLang() {
     try {
@@ -422,16 +423,22 @@
       PLATES[state.unit].forEach((plate) => {
         plateRow.appendChild(el('button', {
           class: 'plate', type: 'button', 'data-plate': String(plate), text: `+${plate}`,
-          'aria-label': `${cfg.label} +${plate}${state.unit}`,
+          'aria-label': `${t(id)} +${plate} ${state.unit}`,
         }));
       });
-      plateRow.appendChild(el('button', { class: 'plate plate-clear', type: 'button', 'data-clear': id, i18n: 'clear' }));
+      plateRow.appendChild(el('button', {
+        class: 'plate plate-clear', type: 'button', 'data-clear': id, i18n: 'clear',
+        'aria-label': `${t(id)} ${t('clear')}`,
+      }));
 
       const repRow = el('div', { class: 'reps' });
       repRow.appendChild(el('span', { class: 'reps-label', i18n: 'reps' }));
       const repBtns = el('div', { class: 'rep-btns', 'data-reps': id });
       REP_CHOICES.forEach((n) => {
-        repBtns.appendChild(el('button', { class: 'rep', type: 'button', 'data-rep': String(n), text: String(n) }));
+        repBtns.appendChild(el('button', {
+          class: 'rep', type: 'button', 'data-rep': String(n), text: String(n),
+          'aria-label': `${t(id)} ${n} ${t('reps')}`,
+        }));
       });
       repRow.appendChild(repBtns);
 
@@ -497,7 +504,7 @@
     if (from === to) return value;
     const kg = from === 'lb' ? value * KG_PER_LB : value;
     const out = to === 'lb' ? kg / KG_PER_LB : kg;
-    return Math.round(out * 2) / 2;
+    return Math.min(MAX_WEIGHT, Math.round(out * 2) / 2);
   }
 
   function toggleUnit() {
@@ -514,6 +521,7 @@
 
   function toggleLang() {
     setLang(lang === 'ko' ? 'en' : 'ko');
+    buildCards();
     applyStaticI18n();
     renderValues();
   }
@@ -540,8 +548,10 @@
 
   async function useLocation() {
     savePrivacyPreferences({ location: true });
+    const reqId = ++locReqId;
     dom.locLabel.textContent = t('locChecking');
     const location = await fetchLocation();
+    if (reqId !== locReqId) return;
     state.location = formatLocation(location);
     renderValues();
   }
