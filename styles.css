@@ -632,7 +632,7 @@ button {
 @media (min-width: 880px) {
   .wrap { width: min(960px, 100%); }
 
-  #calculator {
+  #calculator:not([hidden]) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 322px;
     column-gap: 24px;
