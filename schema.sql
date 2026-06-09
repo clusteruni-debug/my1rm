@@ -15,3 +15,5 @@ CREATE TABLE IF NOT EXISTS records (
 CREATE INDEX IF NOT EXISTS idx_city_total ON records (city, total_kg);
 CREATE INDEX IF NOT EXISTS idx_country_total ON records (country, total_kg);
 CREATE INDEX IF NOT EXISTS idx_total ON records (total_kg);
+-- cohort percentile: WHERE sex = ? AND age_bucket = ? [AND total_kg < ?]
+CREATE INDEX IF NOT EXISTS idx_sex_age_total ON records (sex, age_bucket, total_kg);

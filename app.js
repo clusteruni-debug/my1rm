@@ -645,7 +645,7 @@
       dom.rankMeta.textContent = t('rankError');
       return;
     }
-    if (data.percentile == null || data.totalCount <= 1) {
+    if (data.percentile == null || data.cohortTotal <= 1) {
       dom.rankPct.textContent = '★';
       dom.rankCity.textContent = t('rankFirst');
       dom.rankMeta.textContent = '';
@@ -659,8 +659,8 @@
       dom.rankCity.textContent = '';
     }
     dom.rankMeta.textContent = lang === 'ko'
-      ? `전체 ${data.totalCount}명 참여`
-      : `${data.totalCount} lifters total`;
+      ? `같은 성별·나이대 ${data.cohortTotal}명 중`
+      : `among ${data.cohortTotal} in your sex & age band`;
   }
 
   async function fetchRank() {

@@ -1,6 +1,9 @@
 // POST /api/rank — save one anonymous record, then return this lifter's standing.
-// Region (country/city) comes from Cloudflare's edge metadata (request.cf);
-// the raw IP is never read or stored.
+// Standings are computed BEFORE inserting the new row, so a lifter is never
+// counted in their own rank. Region (country/city) comes from Cloudflare's
+// edge metadata (request.cf); the raw IP is never read or stored.
+
+const ALLOWED_AGE_BUCKETS = ['under 18', '18-23', '24-34', '35-44', '45-54', '55-64', '65+'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -13,7 +16,7 @@ export async function onRequestPost(context) {
     }
 
     const sex = body.sex === 'female' ? 'female' : 'male';
-    const ageBucket = String(body.age_bucket || '').slice(0, 16);
+    const ageBucket = ALLOWED_AGE_BUCKETS.includes(body.age_bucket) ? body.age_bucket : '24-34';
     const squat = clampNum(body.squat_kg);
     const bench = clampNum(body.bench_kg);
     const deadlift = clampNum(body.deadlift_kg);
@@ -22,23 +25,22 @@ export async function onRequestPost(context) {
     const country = cf.country ? String(cf.country).slice(0, 4) : null;
     const city = cf.city ? String(cf.city).slice(0, 64) : null;
 
-    // 1) save the record
-    await env.DB.prepare(
-      `INSERT INTO records (squat_kg, bench_kg, deadlift_kg, total_kg, sex, age_bucket, country, city)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(squat, bench, deadlift, total, sex, ageBucket, country, city).run();
+    // --- standings computed against EXISTING rows (self excluded) ---
 
-    // 2) global percentile = how many recorded totals are below mine
-    const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS c FROM records`).first();
-    const belowRow = await env.DB
-      .prepare(`SELECT COUNT(*) AS c FROM records WHERE total_kg < ?`)
-      .bind(total)
+    // percentile within the same sex + age band (cohort)
+    const cohortCountRow = await env.DB
+      .prepare(`SELECT COUNT(*) AS c FROM records WHERE sex = ? AND age_bucket = ?`)
+      .bind(sex, ageBucket)
       .first();
-    const totalCount = (totalRow && totalRow.c) || 0;
-    const below = (belowRow && belowRow.c) || 0;
-    const percentile = totalCount > 0 ? Math.round((below / totalCount) * 100) : null;
+    const cohortBelowRow = await env.DB
+      .prepare(`SELECT COUNT(*) AS c FROM records WHERE sex = ? AND age_bucket = ? AND total_kg < ?`)
+      .bind(sex, ageBucket, total)
+      .first();
+    const cohortCount = (cohortCountRow && cohortCountRow.c) || 0;
+    const cohortBelow = (cohortBelowRow && cohortBelowRow.c) || 0;
+    const percentile = cohortCount > 0 ? Math.round((cohortBelow / cohortCount) * 100) : null;
 
-    // 3) city standing = how many in my city are above me, +1 = my rank
+    // city standing
     let cityRank = null;
     let cityTotal = null;
     if (city) {
@@ -50,11 +52,27 @@ export async function onRequestPost(context) {
         .prepare(`SELECT COUNT(*) AS c FROM records WHERE city = ? AND total_kg > ?`)
         .bind(city, total)
         .first();
-      cityTotal = (cityCountRow && cityCountRow.c) || 0;
+      cityTotal = ((cityCountRow && cityCountRow.c) || 0) + 1; // include self
       cityRank = ((cityAboveRow && cityAboveRow.c) || 0) + 1;
     }
 
-    return json({ ok: true, totalCount, percentile, city, country, cityRank, cityTotal });
+    // --- now persist this lifter's record ---
+    await env.DB.prepare(
+      `INSERT INTO records (squat_kg, bench_kg, deadlift_kg, total_kg, sex, age_bucket, country, city)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(squat, bench, deadlift, total, sex, ageBucket, country, city).run();
+
+    return json({
+      ok: true,
+      percentile,
+      cohortTotal: cohortCount + 1, // include self for the "N people" label
+      sex,
+      ageBucket,
+      city,
+      country,
+      cityRank,
+      cityTotal,
+    });
   } catch (_err) {
     return json({ error: 'server' }, 500);
   }
