@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://my1rm.example/</loc>
+    <loc>https://my1rm.pages.dev/</loc>
+    <lastmod>2026-06-09</lastmod>
   </url>
   <url>
-    <loc>https://my1rm.example/methodology.html</loc>
+    <loc>https://my1rm.pages.dev/methodology.html</loc>
+    <lastmod>2026-06-09</lastmod>
   </url>
   <url>
-    <loc>https://my1rm.example/privacy.html</loc>
+    <loc>https://my1rm.pages.dev/privacy.html</loc>
+    <lastmod>2026-06-09</lastmod>
   </url>
   <url>
-    <loc>https://my1rm.example/terms.html</loc>
+    <loc>https://my1rm.pages.dev/terms.html</loc>
+    <lastmod>2026-06-09</lastmod>
   </url>
 </urlset>
