@@ -202,7 +202,7 @@
       };
 
       totalKg += oneRmKg;
-      if (oneRmKg > 0) {
+      if (oneRmKg > 0 && score.percentile != null) {
         percentileSum += score.percentile;
         scoredCount += 1;
       }
