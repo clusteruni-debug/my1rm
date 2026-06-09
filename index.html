@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="google-site-verification" content="eoV8XgpWoNsvplku_J-plXNNqaprkSBd_nxIhH6N_Vk">
-    <title>My1RM - Squat, Bench, Deadlift 1RM Calculator</title>
+    <title>My1RM - One-Rep Max Calculator (Squat, Bench, Deadlift & more)</title>
     <meta
       name="description"
-      content="Load plates, tap your reps, and get an estimated squat, bench, and deadlift one-rep max. Simple, bilingual, no account."
+      content="Estimate your one-rep max for squat, bench, deadlift, overhead press, barbell row, and pull-up. Pick a lift, enter one hard set. Bilingual, no account."
     >
-    <meta property="og:title" content="My1RM - SBD 1RM Calculator">
-    <meta property="og:description" content="A fast, simple one-rep max calculator for squat, bench, and deadlift.">
+    <meta property="og:title" content="My1RM - One-Rep Max Calculator">
+    <meta property="og:description" content="Pick a lift and get your estimated one-rep max — squat, bench, deadlift, and more.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://my1rm.pages.dev/">
     <link rel="canonical" href="https://my1rm.pages.dev/">
@@ -23,7 +23,7 @@
       "@type": "WebApplication",
       "name": "My1RM",
       "url": "https://my1rm.pages.dev/",
-      "description": "Estimate your squat, bench, and deadlift one-rep max from working sets.",
+      "description": "Estimate your one-rep max for squat, bench, deadlift, overhead press, barbell row, and pull-up.",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Web",
       "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
@@ -123,13 +123,13 @@
             <strong id="pctLabel">&mdash;</strong>
           </div>
           <div class="meter"><span id="pctFill"></span></div>
-          <p class="muted small" data-i18n="demoNote">Demo percentile model — not a real local ranking.</p>
+          <p class="muted small" data-i18n="demoNote">Sample-based estimate</p>
         </div>
 
         <div class="loc">
           <span class="stat-label" data-i18n="locTitle">Estimated location</span>
-          <strong id="locLabel" data-i18n="locManual">Manual or unavailable</strong>
-          <p class="muted small" data-i18n="locHint">With consent, a coarse Cloudflare country/city. Not stored.</p>
+          <strong id="locLabel" data-i18n="locManual">Manual / none</strong>
+          <p class="muted small" data-i18n="locHint">Coarse country/city · not stored</p>
           <button id="useLoc" class="chip" type="button" data-i18n="useLoc">Use location</button>
         </div>
 

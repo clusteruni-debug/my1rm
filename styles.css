@@ -381,51 +381,6 @@ button {
   border-top: 1px solid var(--border);
 }
 
-.result-rows {
-  display: grid;
-  gap: 8px;
-}
-
-.rrow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-.rrow span { color: var(--muted); }
-
-.rrow-val {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.total-label {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-#totalValue {
-  font-size: 2.1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--primary);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---- tabs + rank ---- */
 .tabs {
   display: flex;

@@ -154,7 +154,8 @@
     const ageBucket = getAgeBucket(age);
     const ratio = bodyweightKg > 0 ? oneRmKg / bodyweightKg : 0;
     const adjustedRatio = ratio / ageBucket.value;
-    const percentile = interpolatePercentile(adjustedRatio, STANDARDS[safeSex][lift]);
+    const table = STANDARDS[safeSex] && STANDARDS[safeSex][lift];
+    const percentile = table ? interpolatePercentile(adjustedRatio, table) : null;
     return {
       ratio: round(ratio, 2),
       adjustedRatio: round(adjustedRatio, 2),
@@ -683,6 +684,7 @@
     const card = target.closest('[data-lift]');
     if (!card) return;
     const id = card.getAttribute('data-lift');
+    if (!id || !state.lift[id]) return;
 
     if (target.hasAttribute('data-plate')) {
       const plate = Number(target.getAttribute('data-plate'));
