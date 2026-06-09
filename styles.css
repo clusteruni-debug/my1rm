@@ -115,6 +115,46 @@ button {
   font-size: 1.02rem;
 }
 
+/* ---- lift picker ---- */
+.lift-picker {
+  margin: 0 0 14px;
+}
+
+.selector-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.lift-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lift-option {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-weight: 700;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.lift-option:hover {
+  background: var(--hover);
+  border-color: var(--muted);
+}
+
+.lift-option.is-on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
 /* ---- lift cards ---- */
 .cards {
   display: grid;
@@ -263,6 +303,82 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
+}
+
+.result-focus {
+  display: grid;
+  gap: 8px;
+}
+
+.result-lift {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.result-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.one-rm-value {
+  display: block;
+  color: var(--primary);
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.ratio-line {
+  margin: 0;
+  color: var(--text);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.formula-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.formula-box summary {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formula-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.formula-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.formula-list dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.formula-list dd {
+  margin: 0;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.formula-average {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
 .result-rows {
@@ -640,6 +756,8 @@ button {
   }
 
   .tagline { grid-column: 1 / -1; }
+  .lift-picker { grid-column: 1 / -1; }
+  .lift-options { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .cards { grid-column: 1; }
 
   .result {

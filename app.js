@@ -5,11 +5,18 @@
   const PRIVACY_KEY = 'my1rm_privacy_preferences_v1';
   const LANG_KEY = 'my1rm_lang_v1';
 
-  const LIFTS = [
+  const SBD_LIFTS = [
     { id: 'squat', label: 'Squat' },
     { id: 'bench', label: 'Bench' },
     { id: 'deadlift', label: 'Deadlift' },
   ];
+  const EXTRA_LIFTS = [
+    { id: 'overheadPress', label: 'Overhead Press' },
+    { id: 'barbellRow', label: 'Barbell Row' },
+    { id: 'pullup', label: 'Pull-up' },
+  ];
+  const LIFTS = SBD_LIFTS;
+  const CALCULATOR_LIFTS = SBD_LIFTS.concat(EXTRA_LIFTS);
 
   const AGE_MULTIPLIERS = [
     { min: 0, max: 17, label: 'under 18', value: 0.82 },
@@ -286,10 +293,13 @@
 
   const I18N = {
     ko: {
-      tagline: '스쿼트·벤치·데드리프트 1RM 추정',
+      tagline: '종목별 1RM 추정',
+      liftSelect: '종목',
       squat: '스쿼트', bench: '벤치', deadlift: '데드리프트',
+      overheadPress: '오버헤드프레스', barbellRow: '바벨로우', pullup: '풀업',
       reps: '횟수', clear: '비우기',
       resultTitle: '예상 1RM',
+      formulaToggle: '공식 보기', formulaAverage: '평균',
       total: '총합',
       more: '상세', less: '접기',
       sex: '성별', male: '남', female: '여', age: '나이', bodyweight: '체중',
@@ -311,10 +321,13 @@
       privacy: '개인정보', terms: '약관', methodology: '계산 방식',
     },
     en: {
-      tagline: 'Squat, bench & deadlift 1RM estimator',
+      tagline: 'Single-lift 1RM estimator',
+      liftSelect: 'Lift',
       squat: 'Squat', bench: 'Bench', deadlift: 'Deadlift',
+      overheadPress: 'Overhead Press', barbellRow: 'Barbell Row', pullup: 'Pull-up',
       reps: 'Reps', clear: 'Clear',
       resultTitle: 'Estimated 1RM',
+      formulaToggle: 'Show formulas', formulaAverage: 'Average',
       total: 'Total',
       more: 'Details', less: 'Hide',
       sex: 'Sex', male: 'M', female: 'F', age: 'Age', bodyweight: 'Bodyweight',
@@ -343,10 +356,14 @@
 
   const state = {
     unit: 'kg',
+    selectedLift: 'squat',
     lift: {
       squat: { weight: 100, reps: 5 },
       bench: { weight: 60, reps: 5 },
       deadlift: { weight: 120, reps: 5 },
+      overheadPress: { weight: 40, reps: 5 },
+      barbellRow: { weight: 60, reps: 8 },
+      pullup: { weight: 80, reps: 5 },
     },
     sex: 'male',
     age: 30,
@@ -389,6 +406,52 @@
     return String(Math.round(value * 100) / 100);
   }
 
+  function liftConfig(id) {
+    return CALCULATOR_LIFTS.find((cfg) => cfg.id === id) || CALCULATOR_LIFTS[0];
+  }
+
+  function hasStandard(lift, sex) {
+    return Boolean(STANDARDS[sex] && STANDARDS[sex][lift]);
+  }
+
+  function displayWeight(weightKg) {
+    return round(fromKg(weightKg, state.unit), state.unit === 'lb' ? 0 : 1);
+  }
+
+  function calculateSelectedLift() {
+    const id = liftConfig(state.selectedLift).id;
+    const liftState = state.lift[id];
+    const weightKg = toKg(liftState.weight, state.unit);
+    const reps = liftState.reps;
+    const oneRmKg = estimateOneRepMax(weightKg, reps);
+    const bodyweightKg = toKg(state.bodyweight, state.unit);
+    const score = hasStandard(id, state.sex)
+      ? scoreLift({
+        lift: id,
+        oneRmKg,
+        bodyweightKg,
+        sex: state.sex,
+        age: state.age,
+      })
+      : null;
+
+    return {
+      id,
+      reps,
+      oneRmKg,
+      displayOneRm: displayWeight(oneRmKg),
+      ratio: bodyweightKg > 0 ? round(oneRmKg / bodyweightKg, 2) : 0,
+      score,
+      level: score ? levelLabel(score.percentile) : null,
+      formulas: {
+        epley: displayWeight(estimateOneRepMax(weightKg, reps, 'epley')),
+        brzycki: displayWeight(estimateOneRepMax(weightKg, reps, 'brzycki')),
+        lombardi: displayWeight(estimateOneRepMax(weightKg, reps, 'lombardi')),
+        average: displayWeight(oneRmKg),
+      },
+    };
+  }
+
   function buildInput() {
     return {
       sex: state.sex,
@@ -422,49 +485,55 @@
   // dom refs filled in setup
   const dom = {};
 
+  function buildLiftPicker() {
+    dom.liftPicker.replaceChildren();
+    CALCULATOR_LIFTS.forEach((cfg) => {
+      dom.liftPicker.appendChild(el('button', {
+        class: 'lift-option',
+        type: 'button',
+        'data-select-lift': cfg.id,
+        i18n: cfg.id,
+        'aria-label': t(cfg.id),
+      }));
+    });
+  }
+
   function buildCards() {
     dom.cards.replaceChildren();
-    dom.resultRows.replaceChildren();
 
-    LIFTS.forEach((cfg) => {
-      const id = cfg.id;
-      const weightValue = el('strong', { class: 'w-value', 'data-w': id, text: fmt(state.lift[id].weight) });
-      const unitTag = el('span', { class: 'w-unit', 'data-unit': '', text: state.unit });
-      const head = el('header', { class: 'card-top' }, [
-        el('h2', { i18n: id }),
-        el('span', { class: 'w-display', 'data-edit': id }, [weightValue, unitTag]),
-      ]);
+    const cfg = liftConfig(state.selectedLift);
+    const id = cfg.id;
+    const weightValue = el('strong', { class: 'w-value', 'data-w': id, text: fmt(state.lift[id].weight) });
+    const unitTag = el('span', { class: 'w-unit', 'data-unit': '', text: state.unit });
+    const head = el('header', { class: 'card-top' }, [
+      el('h2', { i18n: id }),
+      el('span', { class: 'w-display', 'data-edit': id }, [weightValue, unitTag]),
+    ]);
 
-      const plateRow = el('div', { class: 'plates' });
-      PLATES[state.unit].forEach((plate) => {
-        plateRow.appendChild(el('button', {
-          class: 'plate', type: 'button', 'data-plate': String(plate), text: `+${plate}`,
-          'aria-label': `${t(id)} +${plate} ${state.unit}`,
-        }));
-      });
+    const plateRow = el('div', { class: 'plates' });
+    PLATES[state.unit].forEach((plate) => {
       plateRow.appendChild(el('button', {
-        class: 'plate plate-clear', type: 'button', 'data-clear': id, i18n: 'clear',
-        'aria-label': `${t(id)} ${t('clear')}`,
+        class: 'plate', type: 'button', 'data-plate': String(plate), text: `+${plate}`,
+        'aria-label': `${t(id)} +${plate} ${state.unit}`,
       }));
-
-      const repRow = el('div', { class: 'reps' });
-      repRow.appendChild(el('span', { class: 'reps-label', i18n: 'reps' }));
-      const repBtns = el('div', { class: 'rep-btns', 'data-reps': id });
-      REP_CHOICES.forEach((n) => {
-        repBtns.appendChild(el('button', {
-          class: 'rep', type: 'button', 'data-rep': String(n), text: String(n),
-          'aria-label': `${t(id)} ${n} ${t('reps')}`,
-        }));
-      });
-      repRow.appendChild(repBtns);
-
-      dom.cards.appendChild(el('article', { class: 'card', 'data-lift': id }, [head, plateRow, repRow]));
-
-      dom.resultRows.appendChild(el('div', { class: 'rrow' }, [
-        el('span', { i18n: id }),
-        el('strong', { class: 'rrow-val', 'data-result': id, text: '—' }),
-      ]));
     });
+    plateRow.appendChild(el('button', {
+      class: 'plate plate-clear', type: 'button', 'data-clear': id, i18n: 'clear',
+      'aria-label': `${t(id)} ${t('clear')}`,
+    }));
+
+    const repRow = el('div', { class: 'reps' });
+    repRow.appendChild(el('span', { class: 'reps-label', i18n: 'reps' }));
+    const repBtns = el('div', { class: 'rep-btns', 'data-reps': id });
+    REP_CHOICES.forEach((n) => {
+      repBtns.appendChild(el('button', {
+        class: 'rep', type: 'button', 'data-rep': String(n), text: String(n),
+        'aria-label': `${t(id)} ${n} ${t('reps')}`,
+      }));
+    });
+    repRow.appendChild(repBtns);
+
+    dom.cards.appendChild(el('article', { class: 'card', 'data-lift': id }, [head, plateRow, repRow]));
   }
 
   function applyStaticI18n() {
@@ -474,26 +543,47 @@
   }
 
   function renderValues() {
-    const profile = calculateProfile(buildInput());
+    const selected = calculateSelectedLift();
+    const id = selected.id;
 
-    LIFTS.forEach((cfg) => {
-      const id = cfg.id;
-      const wNode = dom.cards.querySelector(`[data-w="${id}"]`);
-      if (wNode) wNode.textContent = fmt(state.lift[id].weight);
-      const rNode = dom.resultRows.querySelector(`[data-result="${id}"]`);
-      if (rNode) rNode.textContent = `${profile.lifts[id].displayOneRm} ${state.unit}`;
-      const repWrap = dom.cards.querySelector(`[data-reps="${id}"]`);
-      if (repWrap) {
-        repWrap.querySelectorAll('.rep').forEach((btn) => {
-          const on = Number(btn.getAttribute('data-rep')) === state.lift[id].reps;
-          btn.classList.toggle('is-on', on);
-          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-      }
+    dom.liftPicker.querySelectorAll('[data-select-lift]').forEach((btn) => {
+      const on = btn.getAttribute('data-select-lift') === id;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
+    const wNode = dom.cards.querySelector(`[data-w="${id}"]`);
+    if (wNode) wNode.textContent = fmt(state.lift[id].weight);
+    const repWrap = dom.cards.querySelector(`[data-reps="${id}"]`);
+    if (repWrap) {
+      repWrap.querySelectorAll('.rep').forEach((btn) => {
+        const on = Number(btn.getAttribute('data-rep')) === state.lift[id].reps;
+        btn.classList.toggle('is-on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+
     dom.cards.querySelectorAll('[data-unit]').forEach((node) => { node.textContent = state.unit; });
-    dom.totalValue.textContent = `${profile.displayTotal} ${state.unit}`;
+    dom.selectedLiftLabel.textContent = t(id);
+    dom.oneRmValue.textContent = `${selected.displayOneRm} ${state.unit}`;
+    dom.ratioLine.textContent = `${selected.ratio}x ${t('ratioLabel')}`;
+    dom.formulaEpley.textContent = `${selected.formulas.epley} ${state.unit}`;
+    dom.formulaBrzycki.textContent = `${selected.formulas.brzycki} ${state.unit}`;
+    dom.formulaLombardi.textContent = `${selected.formulas.lombardi} ${state.unit}`;
+    dom.formulaAverageValue.textContent = `${selected.formulas.average} ${state.unit}`;
+
+    if (selected.score) {
+      dom.levelLine.hidden = false;
+      dom.levelLine.textContent = `p${selected.score.percentile} · ${t('level_' + selected.level)}`;
+      dom.benchmarkBox.hidden = false;
+      dom.pctLabel.textContent = `p${selected.score.percentile} · ${t('level_' + selected.level)}`;
+      dom.pctFill.style.width = `${clamp(selected.score.percentile, 0, 100)}%`;
+    } else {
+      dom.levelLine.hidden = true;
+      dom.benchmarkBox.hidden = true;
+      dom.pctLabel.textContent = '—';
+      dom.pctFill.style.width = '0%';
+    }
 
     // advanced
     dom.ageValue.textContent = String(state.age);
@@ -503,9 +593,6 @@
       btn.classList.toggle('is-on', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    dom.pctLabel.textContent = `p${profile.totalPercentile} · ${t('level_' + profile.level)}`;
-    dom.pctFill.style.width = `${clamp(profile.totalPercentile, 0, 100)}%`;
-    dom.ratioLine.textContent = `${profile.totalRatio}x ${t('ratioLabel')}`;
     dom.locLabel.textContent = state.location || t('locManual');
 
     // chrome
@@ -525,7 +612,7 @@
 
   function toggleUnit() {
     const next = state.unit === 'kg' ? 'lb' : 'kg';
-    LIFTS.forEach((cfg) => {
+    CALCULATOR_LIFTS.forEach((cfg) => {
       state.lift[cfg.id].weight = convertWeight(state.lift[cfg.id].weight, state.unit, next);
     });
     state.bodyweight = convertWeight(state.bodyweight, state.unit, next);
@@ -537,6 +624,15 @@
 
   function toggleLang() {
     setLang(lang === 'ko' ? 'en' : 'ko');
+    buildLiftPicker();
+    buildCards();
+    applyStaticI18n();
+    renderValues();
+  }
+
+  function selectLift(id) {
+    if (!state.lift[id]) return;
+    state.selectedLift = id;
     buildCards();
     applyStaticI18n();
     renderValues();
@@ -612,8 +708,8 @@
   }
 
   async function copyResult() {
-    const profile = calculateProfile(buildInput());
-    const text = `My1RM: ${profile.displayTotal} ${state.unit} (p${profile.totalPercentile})`;
+    const selected = calculateSelectedLift();
+    const text = `${t(selected.id)} My1RM: ${selected.displayOneRm} ${state.unit} (${selected.ratio}x ${t('ratioLabel')})`;
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
@@ -690,9 +786,15 @@
   }
 
   function setupBrowser() {
+    dom.liftPicker = document.getElementById('liftPicker');
     dom.cards = document.getElementById('liftCards');
-    dom.resultRows = document.getElementById('resultRows');
-    dom.totalValue = document.getElementById('totalValue');
+    dom.selectedLiftLabel = document.getElementById('selectedLiftLabel');
+    dom.oneRmValue = document.getElementById('oneRmValue');
+    dom.levelLine = document.getElementById('levelLine');
+    dom.formulaEpley = document.getElementById('formulaEpley');
+    dom.formulaBrzycki = document.getElementById('formulaBrzycki');
+    dom.formulaLombardi = document.getElementById('formulaLombardi');
+    dom.formulaAverageValue = document.getElementById('formulaAverageValue');
     dom.langToggle = document.getElementById('langToggle');
     dom.unitToggle = document.getElementById('unitToggle');
     dom.moreToggle = document.getElementById('moreToggle');
@@ -703,6 +805,7 @@
     dom.pctLabel = document.getElementById('pctLabel');
     dom.pctFill = document.getElementById('pctFill');
     dom.ratioLine = document.getElementById('ratioLine');
+    dom.benchmarkBox = document.getElementById('benchmarkBox');
     dom.locLabel = document.getElementById('locLabel');
     dom.copyBtn = document.getElementById('copyBtn');
     dom.rankBtn = document.getElementById('rankBtn');
@@ -713,10 +816,16 @@
 
     setLang(detectLang());
 
+    buildLiftPicker();
     buildCards();
     applyStaticI18n();
     renderValues();
 
+    dom.liftPicker.addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-select-lift]');
+      if (!btn) return;
+      selectLift(btn.getAttribute('data-select-lift'));
+    });
     dom.cards.addEventListener('click', onCardClick);
     dom.langToggle.addEventListener('click', toggleLang);
     dom.unitToggle.addEventListener('click', toggleUnit);
