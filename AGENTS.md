@@ -1,4 +1,4 @@
-# My1RM — AGENTS.md
+﻿# My1RM — AGENTS.md
 
 > Global rules: see workspace root `AGENTS.md` and `config/codex-global/RUNTIME-CONTRACT.md`.
 > Detailed context: See `CLAUDE.md`
@@ -44,20 +44,9 @@
 - External (laptop/mobile) work defaults to SSH -> WSL.
 - Execution environment: **Windows default** (remote access via SSH -> WSL for editing, execution constraints follow project rules)
 - When confused about paths, refer to the "Development Environment (Multi-Platform)" section in CLAUDE.md first.
+<!-- BEGIN: WORKSPACE_POLICY_INHERITANCE -->
+## Workspace Policy Inheritance
 
-<!-- BEGIN: CODEX_GIT_POLICY_BLOCK -->
-## Codex Git Permissions (Workspace Policy)
-
-Project-local rules inherit root `AGENTS.md` section 3 and section 16.
-
-| Action | Claude Code/User | Codex |
-| --- | :---: | :---: |
-| Code modification | yes | yes |
-| Build/test verification | yes | yes |
-| `git commit` | yes | gated local only |
-| `git push` | yes | forbidden |
-
-- Codex may create a local commit only when the root workspace Codex commit gate passes for the task.
-- Codex never pushes. Claude Code or the user handles push and integration ownership.
-- If this project needs stricter review-only behavior for a task, state it in that task's scope; otherwise root policy wins.
-<!-- END: CODEX_GIT_POLICY_BLOCK -->
+Git/commit/push, task/lock, review, and handoff rules come from root
+`AGENTS.md`; project rules only add stricter local constraints.
+<!-- END: WORKSPACE_POLICY_INHERITANCE -->
