@@ -4,27 +4,33 @@
 
 My1RM is a public mini-site for calculating estimated one-rep maxes for squat,
 bench, and deadlift. The project is designed as a lightweight AdSense-ready
-experiment that can be deployed to Cloudflare Pages without a backend database.
+experiment that can be deployed to Cloudflare Pages. The calculator stays
+client-side; visitors who opt into the ranking flow submit one anonymous result
+to the Cloudflare D1 `records` store.
 
 ## Runtime
 
 - Static HTML, CSS, and vanilla JavaScript.
-- Cloudflare Pages Functions for coarse request location only.
-- No package dependencies in the MVP.
-- No account, saved records, or DB schema.
+- Cloudflare Pages Functions for coarse request location and anonymous ranking.
+- Cloudflare D1 stores ranking records defined by `schema.sql` and bound as
+  `DB` in `wrangler.toml`.
+- No package dependencies in the MVP and no account or login system.
+- Ranking records contain a generated record ID and timestamp plus lift totals,
+  selected sex/age band, and coarse country/city. No name, email, user ID, or raw IP is stored.
 
 ## Verification
 
 Run from this directory:
 
-```bash
-node --check app.js
-node --check functions/api/location.js
-node tests/calculator.test.js
+```powershell
+npm run check
+Get-Content -Raw functions/api/rank.js | node --check --input-type=module
 ```
 
+`rank.js` is ESM in a typeless package, so a bare `node --check functions/api/rank.js` is not an accepted substitute for the module-typed stdin check.
+
 For UI smoke, open `index.html` directly or serve the directory with a local
-static server. The Cloudflare location endpoint is deployment-only.
+static server. The Cloudflare location and ranking endpoints are deployment-only.
 
 ## Product Guardrails
 

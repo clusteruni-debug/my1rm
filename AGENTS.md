@@ -31,6 +31,7 @@
 ## Definition of Done (Pre-PR Checklist)
 
 - [ ] `node --check app.js && node --check functions/api/location.js` — 0 syntax errors
+- [ ] PowerShell: `Get-Content -Raw functions/api/rank.js | node --check --input-type=module` — 0 ESM syntax errors
 - [ ] `node tests/calculator.test.js` passes
 - [ ] `index.html` opens standalone in a browser without console errors
 - [ ] Percentile + location output stay labeled as demo / coarse (guardrails intact)
