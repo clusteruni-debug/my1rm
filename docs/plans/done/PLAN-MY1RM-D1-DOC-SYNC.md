@@ -1,8 +1,8 @@
 ---
 plan_id: MY1RM-D1-DOC-SYNC
 project: my1rm
-status: IN_PROGRESS
-status_reason: Y0 documentation truth and a module-aware AGENTS verification gate were implemented on 2026-07-22; milestone flags remain open pending cross-model review. Under Node 24.13.1, the bare typeless-file check did not reject malformed ESM, so package.json/config/projects.json still need the equivalent robust Y1 gate; Y2/Y3 remain.
+status: DEFERRED
+status_reason: "DEFERRED 2026-07-22 (user decision, case-by-case triage): 17d untouched, no near-term need for D1 doc sync. Content intact; re-open anytime."
 milestones:
   - { id: Y0, label: "Doc truth: CLAUDE.md rewritten to describe the anonymous D1 ranking store; CHANGELOG note; domain-map rows for rank.js/schema.sql/wrangler.toml", done: false }
   - { id: Y1, label: "Registry + verify gates: projects.json db/schema fields set; module-aware rank.js ESM syntax gate added to registry verificationCommand + package.json check + AGENTS.md DoD", done: false }
