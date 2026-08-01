@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="google-site-verification" content="eoV8XgpWoNsvplku_J-plXNNqaprkSBd_nxIhH6N_Vk">
-    <title>My1RM - One-Rep Max Calculator (Squat, Bench, Deadlift & more)</title>
+    <title>My1RM - 스쿼트·벤치프레스·데드리프트 3대 추정</title>
     <meta
       name="description"
-      content="Estimate your one-rep max for squat, bench, deadlift, overhead press, barbell row, and pull-up. Pick a lift, enter one hard set. Bilingual, no account."
+      content="스쿼트, 벤치프레스, 데드리프트의 한 세트 기록으로 예상 1RM과 3대 합계, 데모 백분위를 빠르게 계산합니다."
     >
-    <meta property="og:title" content="My1RM - One-Rep Max Calculator">
-    <meta property="og:description" content="Pick a lift and get your estimated one-rep max — squat, bench, deadlift, and more.">
+    <meta property="og:title" content="My1RM - 3대 추정">
+    <meta property="og:description" content="스쿼트·벤치프레스·데드리프트 예상 1RM과 3대 합계를 한 화면에서 계산합니다.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://my1rm.pages.dev/">
     <link rel="canonical" href="https://my1rm.pages.dev/">
@@ -23,7 +23,7 @@
       "@type": "WebApplication",
       "name": "My1RM",
       "url": "https://my1rm.pages.dev/",
-      "description": "Estimate your one-rep max for squat, bench, deadlift, overhead press, barbell row, and pull-up.",
+      "description": "Estimate squat, bench press, and deadlift one-rep maxes, SBD total, and a demo percentile.",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Web",
       "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
@@ -33,130 +33,151 @@
   </head>
   <body>
     <header class="bar">
-      <a class="brand" href="/" aria-label="My1RM home">My1RM</a>
-      <div class="bar-actions">
-        <button id="langToggle" class="chip" type="button" aria-label="Toggle language">한</button>
-        <button id="unitToggle" class="chip" type="button" aria-label="Toggle unit">kg</button>
+      <div class="bar-inner">
+        <a class="brand" href="/" aria-label="My1RM 홈">My1RM</a>
+        <div class="bar-actions">
+          <button id="langToggle" class="utility-button" type="button" aria-label="언어 전환">EN</button>
+          <button id="unitToggle" class="utility-button" type="button" aria-label="단위 전환">kg</button>
+        </div>
       </div>
     </header>
 
-    <main class="wrap">
-      <nav class="tabs" aria-label="View">
-        <button class="tab is-on" type="button" data-tab="calc" data-i18n="tabCalc" aria-selected="true">Calculator</button>
-        <button class="tab" type="button" data-tab="rank" data-i18n="tabRank" aria-selected="false">My Rank</button>
-      </nav>
-
-      <div id="calculator" class="panel" data-panel="calc">
-      <p class="tagline" data-i18n="tagline">Choose a lift, enter one hard set, get your max.</p>
-
-      <section class="lift-picker" aria-labelledby="liftPickerTitle">
-        <p id="liftPickerTitle" class="selector-label" data-i18n="liftSelect">Lift</p>
-        <div id="liftPicker" class="lift-options"></div>
-      </section>
-
-      <div id="liftCards" class="cards"></div>
-
-      <section class="result result-focus" aria-live="polite">
-        <p id="selectedLiftLabel" class="result-lift">Squat</p>
-        <h2 class="result-title" data-i18n="resultTitle">Estimated 1RM</h2>
-        <strong id="oneRmValue" class="one-rm-value">&mdash;</strong>
-        <p id="ratioLine" class="ratio-line">&mdash;</p>
-        <p id="levelLine" class="muted small" hidden></p>
-
-        <details class="formula-box">
-          <summary data-i18n="formulaToggle">Show formulas</summary>
-          <dl class="formula-list">
-            <div>
-              <dt>Epley</dt>
-              <dd id="formulaEpley">&mdash;</dd>
-            </div>
-            <div>
-              <dt>Brzycki</dt>
-              <dd id="formulaBrzycki">&mdash;</dd>
-            </div>
-            <div>
-              <dt>Lombardi</dt>
-              <dd id="formulaLombardi">&mdash;</dd>
-            </div>
-            <div class="formula-average">
-              <dt data-i18n="formulaAverage">Average</dt>
-              <dd id="formulaAverageValue">&mdash;</dd>
-            </div>
-          </dl>
-        </details>
-      </section>
-
-      <button id="moreToggle" class="more-toggle" type="button" aria-expanded="false" aria-controls="advanced">
-        <span>More detail</span>
-      </button>
-
-      <section id="advanced" class="advanced" hidden>
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-label" data-i18n="sex">Sex</span>
-            <div class="seg" id="sexSeg">
-              <button type="button" class="seg-btn" data-sex="male" data-i18n="male" aria-pressed="true">M</button>
-              <button type="button" class="seg-btn" data-sex="female" data-i18n="female" aria-pressed="false">F</button>
-            </div>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="age">Age</span>
-            <div class="stepper">
-              <button id="ageMinus" class="step" type="button" aria-label="Decrease age">&minus;</button>
-              <strong id="ageValue">30</strong>
-              <button id="agePlus" class="step" type="button" aria-label="Increase age">+</button>
-            </div>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="bodyweight">Bodyweight</span>
-            <div class="stepper">
-              <button id="bwMinus" class="step" type="button" aria-label="Decrease bodyweight">&minus;</button>
-              <strong id="bwValue">80 kg</strong>
-              <button id="bwPlus" class="step" type="button" aria-label="Increase bodyweight">+</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="benchmarkBox" class="bench">
-          <div class="bench-head">
-            <span data-i18n="percentile">Percentile</span>
-            <strong id="pctLabel">&mdash;</strong>
-          </div>
-          <div class="meter"><span id="pctFill"></span></div>
-          <p class="muted small" data-i18n="demoNote">Sample-based estimate</p>
-        </div>
-
-        <div class="loc">
-          <span class="stat-label" data-i18n="locTitle">Estimated location</span>
-          <strong id="locLabel" data-i18n="locManual">Manual / none</strong>
-          <p class="muted small" data-i18n="locHint">Coarse country/city · not stored</p>
-          <button id="useLoc" class="chip" type="button" data-i18n="useLoc">Use location</button>
-        </div>
-
-        <button id="copyBtn" class="btn-ghost" type="button" data-i18n="copy">Copy result</button>
-      </section>
+    <main class="shell">
+      <div class="title-row">
+        <h1 id="pageTitle" data-i18n="title">3대 추정</h1>
+        <button id="resetButton" class="reset-button" type="button" data-i18n="reset">초기화</button>
       </div>
 
-      <section id="panel-rank" class="panel" data-panel="rank" hidden>
-        <p class="tagline" data-i18n="rankIntro">Your total vs. every visitor</p>
-        <button id="rankBtn" class="more-toggle" type="button" data-i18n="seeRank">See rank</button>
-        <div id="rankResult" class="rank-result" hidden>
-          <div class="rank-big">
-            <strong id="rankPct">&mdash;</strong>
-            <span class="muted small" data-i18n="rankPctLabel">overall</span>
-          </div>
-          <p id="rankCity" class="rank-city"></p>
-          <p id="rankMeta" class="muted small"></p>
-          <p class="muted small" data-i18n="rankNote">Anonymous · coarse region from your connection, IP never stored</p>
+      <section id="calculator" class="calculator" aria-labelledby="pageTitle">
+        <div class="table-head" aria-hidden="true">
+          <span data-i18n="lift">종목</span>
+          <span data-i18n="weight">무게</span>
+          <span data-i18n="reps">횟수</span>
+          <span data-i18n="oneRm">예상 1RM</span>
         </div>
+
+        <article class="lift-row">
+          <h2 class="lift-name" data-i18n="squat">스쿼트</h2>
+          <label class="field" for="squatWeight">
+            <span class="field-label" data-i18n="weight">무게</span>
+            <span class="input-shell">
+              <input id="squatWeight" data-calculator-input type="number" min="0" max="1000" step="0.5" inputmode="decimal" autocomplete="off">
+              <span data-unit>kg</span>
+            </span>
+          </label>
+          <label class="field" for="squatReps">
+            <span class="field-label" data-i18n="reps">횟수</span>
+            <select id="squatReps" data-calculator-input aria-label="스쿼트 횟수"></select>
+          </label>
+          <div class="estimate" aria-live="polite">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="squat">—</strong>
+          </div>
+        </article>
+
+        <article class="lift-row">
+          <h2 class="lift-name" data-i18n="bench">벤치프레스</h2>
+          <label class="field" for="benchWeight">
+            <span class="field-label" data-i18n="weight">무게</span>
+            <span class="input-shell">
+              <input id="benchWeight" data-calculator-input type="number" min="0" max="1000" step="0.5" inputmode="decimal" autocomplete="off">
+              <span data-unit>kg</span>
+            </span>
+          </label>
+          <label class="field" for="benchReps">
+            <span class="field-label" data-i18n="reps">횟수</span>
+            <select id="benchReps" data-calculator-input aria-label="벤치프레스 횟수"></select>
+          </label>
+          <div class="estimate" aria-live="polite">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="bench">—</strong>
+          </div>
+        </article>
+
+        <article class="lift-row">
+          <h2 class="lift-name" data-i18n="deadlift">데드리프트</h2>
+          <label class="field" for="deadliftWeight">
+            <span class="field-label" data-i18n="weight">무게</span>
+            <span class="input-shell">
+              <input id="deadliftWeight" data-calculator-input type="number" min="0" max="1000" step="0.5" inputmode="decimal" autocomplete="off">
+              <span data-unit>kg</span>
+            </span>
+          </label>
+          <label class="field" for="deadliftReps">
+            <span class="field-label" data-i18n="reps">횟수</span>
+            <select id="deadliftReps" data-calculator-input aria-label="데드리프트 횟수"></select>
+          </label>
+          <div class="estimate" aria-live="polite">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="deadlift">—</strong>
+          </div>
+        </article>
+
+        <section class="total-section" aria-labelledby="totalTitle">
+          <div class="total-row">
+            <h2 id="totalTitle" data-i18n="total">예상 3대</h2>
+            <div class="total" aria-live="polite">
+              <strong id="totalValue">—</strong>
+              <span id="totalUnit" class="total-unit">kg</span>
+            </div>
+          </div>
+          <details>
+            <summary data-i18n="formula">계산식</summary>
+            <p data-i18n="formulaNote">Epley · Brzycki · Lombardi 평균</p>
+          </details>
+        </section>
+
+        <section class="percentile-section" aria-labelledby="percentileTitle">
+          <div class="percentile-head">
+            <div>
+              <h2 id="percentileTitle" data-i18n="percentile">예상 백분위</h2>
+              <span class="section-meta" data-i18n="demoNote">데모 데이터 기준</span>
+            </div>
+            <strong id="percentileValue" class="percentile-value" aria-live="polite">—</strong>
+          </div>
+
+          <div class="profile-grid">
+            <label class="field" for="sex">
+              <span class="field-label" data-i18n="sex">성별</span>
+              <select id="sex" data-calculator-input>
+                <option value="" data-i18n="select">선택</option>
+                <option value="male" data-i18n="male">남</option>
+                <option value="female" data-i18n="female">여</option>
+              </select>
+            </label>
+            <label class="field" for="age">
+              <span class="field-label" data-i18n="age">나이</span>
+              <input id="age" data-calculator-input type="number" min="13" max="90" inputmode="numeric" autocomplete="off">
+            </label>
+            <label class="field bodyweight-field" for="bodyweight">
+              <span class="field-label" data-i18n="bodyweight">체중</span>
+              <span class="input-shell">
+                <input id="bodyweight" data-calculator-input type="number" min="1" max="400" step="0.1" inputmode="decimal" autocomplete="off">
+                <span data-unit>kg</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="rank-row">
+            <div>
+              <h2 data-i18n="rank">참여자 순위</h2>
+              <span class="section-meta" data-i18n="rankNote">기록 제출 후 표시</span>
+            </div>
+            <button id="rankButton" class="rank-button" type="button" data-i18n="rankButton" disabled>순위 보기</button>
+            <div id="rankResult" class="rank-result" aria-live="polite" hidden>
+              <strong id="rankValue">—</strong>
+              <span id="rankMeta"></span>
+            </div>
+          </div>
+        </section>
       </section>
 
       <footer class="foot">
-        <p class="muted small" data-i18n="footer">My1RM is an estimate, not coaching, medical, or judging advice.</p>
-        <nav aria-label="Footer">
-          <a href="privacy.html" data-i18n="privacy">Privacy</a>
-          <a href="terms.html" data-i18n="terms">Terms</a>
-          <a href="methodology.html" data-i18n="methodology">Methodology</a>
+        <p data-i18n="footer">추정 도구 · 코칭·의료·판정 조언 아님</p>
+        <nav aria-label="하단 링크">
+          <a href="privacy.html" data-i18n="privacy">개인정보</a>
+          <a href="terms.html" data-i18n="terms">약관</a>
+          <a href="methodology.html" data-i18n="methodology">계산 방식</a>
         </nav>
       </footer>
     </main>

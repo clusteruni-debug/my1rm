@@ -1,6 +1,6 @@
 # My1RM Design Contract
 
-Status: mock-up iteration 2 approved by user
+Status: production implementation in review (MY1RM-FUNNEL-20260801-01)
 Updated: 2026-08-01
 Mock-up: `docs/my1rm-sbd-focus-preview.html` (approved 2026-08-01)
 
@@ -86,8 +86,29 @@ surface.
 - Keyboard focus remains visible.
 - Reduced-motion preferences disable transitions.
 
-## Scope boundary
+## Production implementation
 
-This mock-up does not change production HTML, CSS, JavaScript, APIs, D1 schema,
-Cloudflare bindings, analytics, dependencies, or persisted data. Production
-implementation begins only after explicit visual approval.
+The user approved iteration 2 before production work. `index.html`, `styles.css`,
+and the browser UI in `app.js` now implement this contract. The calculation
+formulas and participant-ranking API remain unchanged.
+
+## Measurement contract
+
+Product behavior is measured as anonymous per-tab milestones:
+
+1. `page_view`
+2. `calculator_started`
+3. `estimate_completed`
+4. `percentile_viewed`
+5. `rank_submit_attempt`
+6. `rank_submit_success`
+7. `rank_submit_failure`
+
+The analytics request contains only `session_id` and `event_name`. Exercise,
+body, demographic, location, and IP fields are rejected by the endpoint. Each
+milestone is unique per session. `?internal=1` stores a device exclusion flag
+and suppresses analytics requests; `?internal=0` clears it. Participant records
+remain opt-in and are still submitted only through the ranking button.
+
+The private report is `scripts/analytics-report.sql`; no public read API is
+provided.

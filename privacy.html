@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Privacy - My1RM</title>
-    <meta name="description" content="My1RM privacy — anonymous ranking with no account and no raw IP stored; only coarse city/country from your connection is used.">
+    <meta name="description" content="My1RM privacy — anonymous session milestones and opt-in ranking records, with no account and no raw IP stored by the app.">
     <link rel="canonical" href="https://my1rm.pages.dev/privacy">
     <meta name="theme-color" content="#ea580c">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,7 +14,7 @@
     <header class="topbar">
       <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>My1RM</span></a>
       <nav class="topnav" aria-label="Main navigation">
-        <a href="index.html#calculator">Calculator</a>
+        <a href="index.html">Calculator</a>
         <a href="methodology.html">Methodology</a>
         <a href="terms.html">Terms</a>
       </nav>
@@ -22,53 +22,56 @@
     <main class="legal-page">
       <p class="eyebrow">Privacy</p>
       <h1>Privacy policy</h1>
-      <p>Last updated: 2026-06-09</p>
+      <p>Last updated: 2026-08-01</p>
       <p>
-        My1RM runs in your browser and does not require an account. The calculator
-        itself works entirely on your device. If you choose to see your rank, one
-        anonymous record is saved — see "Ranking records" below.
+        My1RM does not require an account. One-rep-max calculations run in your
+        browser. Usage measurement and ranking submissions are described below.
       </p>
-      <h2>Local privacy preferences</h2>
+
+      <h2>Anonymous usage measurement</h2>
       <p>
-        If you choose a privacy option on the site, My1RM stores that preference
-        in your browser's localStorage so the banner does not need to appear on
-        every visit. This preference is not sent to a database by the MVP.
+        My1RM records a short list of product milestones: page view, first
+        calculator input, completed three-lift estimate, displayed demo
+        percentile, and ranking submission attempt, success, or failure. Each
+        row contains only the milestone name, a random per-tab session ID, and a
+        server timestamp.
       </p>
+      <p>
+        The usage endpoint rejects exercise weights, bodyweight, sex, age,
+        location, raw IP, names, emails, and extra fields. The session ID is not
+        reused across browser tabs and is not an account or a persistent visitor
+        ID. Usage rows remain in the D1 database until the operator removes them.
+      </p>
+
+      <h2>Browser storage</h2>
+      <p>
+        The selected language and the operator's internal-device exclusion flag
+        are stored in localStorage. The random analytics session ID and the list
+        of milestones already sent in that tab are stored in sessionStorage.
+        A device marked as internal sends no usage-measurement requests.
+      </p>
+
       <h2>Ranking records</h2>
       <p>
-        If you tap "See my rank", My1RM saves one anonymous record: your estimated
-        squat, bench, deadlift, and total one-rep max, your selected sex and age
-        band, and a coarse region (city and country) derived from your connection.
-        No name, email, account, or raw IP address is stored — the region is read
-        from Cloudflare's edge metadata and the IP itself is discarded. These
-        records are only used to compute the "top %" and city standings shown back
-        to visitors.
+        A ranking record is saved only when you press the ranking button. It
+        contains estimated squat, bench press, deadlift, and total one-rep max,
+        selected sex and age band, and a coarse city and country derived from
+        Cloudflare request metadata. Calculation and demo-percentile display do
+        not submit a ranking record.
       </p>
-      <h2>Location</h2>
       <p>
-        My1RM can call a lightweight location endpoint that reads Cloudflare request
-        metadata such as country, region, and city to label your result as a coarse
-        estimate. The raw IP address is never stored.
+        My1RM does not read or store the raw client IP in its D1 tables. Ranking
+        records have no name, email, account, or persistent visitor ID.
       </p>
-      <h2>Cookies</h2>
+
+      <h2>Cookies and advertising</h2>
       <p>
         The MVP does not set advertising cookies because Google AdSense has not
-        been enabled yet. If AdSense is enabled later, Google and other third-party
-        vendors may use cookies, web beacons, IP addresses, or other identifiers
-        to serve and measure ads. Users may opt out of personalized advertising
-        through Google's Ads Settings.
+        been enabled. If advertising is enabled later, this policy and the
+        site's consent controls must be updated before personalized ads are
+        served where consent is required.
       </p>
-      <h2>Advertising</h2>
-      <p>
-        This page should be updated with the final AdSense publisher details before
-        ads go live. For regions where consent is legally required, configure
-        AdSense Privacy & messaging or another compliant consent-management tool
-        before serving personalized ads.
-      </p>
-      <h2>Contact</h2>
-      <p>
-        Add the operator contact email here before public launch.
-      </p>
+
     </main>
   </body>
 </html>
