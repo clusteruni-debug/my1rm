@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My1RM — 3대 추정 목업</title>
+    <style>
+      :root {
+        --bg: #f5f6f8;
+        --card: #ffffff;
+        --text: #15181d;
+        --muted: #626b78;
+        --border: #e4e7ec;
+        --border-strong: #d3d8e0;
+        --primary: #ea580c;
+        --primary-hover: #c2470a;
+        --radius: 12px;
+        --radius-sm: 8px;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.45;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      button,
+      input,
+      select { font: inherit; }
+
+      button { cursor: pointer; }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.42;
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .bar {
+        border-bottom: 1px solid var(--border);
+        background: var(--card);
+      }
+
+      .bar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: min(760px, 100%);
+        min-height: 58px;
+        margin: 0 auto;
+        padding: 8px 20px;
+      }
+
+      .brand-line,
+      .bar-actions,
+      .title-row,
+      .total-row,
+      .percentile-head,
+      .rank-main,
+      .foot {
+        display: flex;
+        align-items: center;
+      }
+
+      .brand-line { gap: 9px; }
+
+      .brand {
+        font-size: 1.08rem;
+        font-weight: 850;
+        letter-spacing: -0.02em;
+      }
+
+      .mock-label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .bar-actions {
+        gap: 6px;
+      }
+
+      .utility-button {
+        min-width: 44px;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 7px;
+        background: var(--card);
+        color: var(--text);
+        font-size: 0.84rem;
+        font-weight: 750;
+      }
+
+      .utility-button:hover { background: var(--bg); }
+
+      .shell {
+        width: min(760px, 100%);
+        margin: 0 auto;
+        padding: 30px 20px 56px;
+      }
+
+      .title-row {
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      h1,
+      h2,
+      p { margin: 0; }
+
+      h1 {
+        font-size: 1.28rem;
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+      }
+
+      h2 {
+        font-size: 0.96rem;
+        line-height: 1.3;
+        letter-spacing: -0.012em;
+      }
+
+      .reset-button {
+        min-height: 38px;
+        padding: 0 4px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .reset-button:hover { color: var(--text); }
+
+      .calculator {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+      }
+
+      .table-head,
+      .lift-row {
+        display: grid;
+        grid-template-columns: minmax(145px, 1.15fr) minmax(126px, 0.95fr) 84px minmax(118px, 0.82fr);
+        gap: 12px;
+        align-items: center;
+      }
+
+      .table-head {
+        min-height: 42px;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--border);
+        background: #fafbfc;
+        color: var(--muted);
+        font-size: 0.73rem;
+        font-weight: 750;
+      }
+
+      .table-head span:last-child { text-align: right; }
+
+      .lift-row {
+        min-height: 72px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .lift-name {
+        font-size: 0.94rem;
+        font-weight: 800;
+      }
+
+      .field { min-width: 0; }
+
+      .field-label {
+        display: none;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .input-shell {
+        position: relative;
+      }
+
+      .input-shell input,
+      .field select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        background: var(--card);
+        color: var(--text);
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .input-shell input {
+        padding: 0 40px 0 11px;
+      }
+
+      .input-shell span {
+        position: absolute;
+        top: 50%;
+        right: 11px;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .field select {
+        padding: 0 8px;
+      }
+
+      .estimate {
+        min-width: 0;
+        text-align: right;
+      }
+
+      .estimate-label {
+        display: none;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .estimate-value {
+        font-size: 0.94rem;
+        font-weight: 820;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .total-section {
+        padding: 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .total-row {
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .total {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        color: var(--primary);
+        font-size: clamp(2rem, 7vw, 2.65rem);
+        font-weight: 860;
+        letter-spacing: -0.045em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .total-unit {
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 750;
+        letter-spacing: 0;
+      }
+
+      details {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      summary {
+        width: max-content;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      details p { margin-top: 5px; }
+
+      .percentile-section {
+        padding: 18px;
+      }
+
+      .percentile-head {
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 15px;
+      }
+
+      .section-meta {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.74rem;
+        font-weight: 650;
+      }
+
+      .percentile-value {
+        min-width: 54px;
+        color: var(--text);
+        font-size: 1.6rem;
+        font-weight: 850;
+        line-height: 1;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .profile-grid .field-label {
+        display: block;
+      }
+
+      .rank-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px 20px;
+        align-items: center;
+        margin-top: 18px;
+        padding: 16px 2px;
+        border-top: 1px solid var(--border-strong);
+        border-bottom: 1px solid var(--border-strong);
+      }
+
+      .rank-main {
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .rank-button {
+        min-width: 112px;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1px solid var(--text);
+        border-radius: var(--radius-sm);
+        background: var(--text);
+        color: var(--card);
+        font-size: 0.88rem;
+        font-weight: 800;
+      }
+
+      .rank-button:not(:disabled):hover { background: #30343a; }
+
+      .rank-demo {
+        grid-column: 1 / -1;
+        color: var(--primary);
+        font-size: 0.76rem;
+        font-weight: 750;
+      }
+
+      .rank-demo[hidden] { display: none; }
+
+      .foot {
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      @media (max-width: 620px) {
+        .bar-inner { padding-inline: 16px; }
+
+        .shell {
+          padding: 24px 16px 44px;
+        }
+
+        .table-head { display: none; }
+
+        .lift-row {
+          grid-template-columns: minmax(0, 1fr) 88px;
+          gap: 10px;
+          padding: 14px;
+        }
+
+        .lift-name {
+          grid-column: 1 / -1;
+          margin-bottom: -2px;
+        }
+
+        .field-label { display: block; }
+
+        .estimate {
+          grid-column: 1 / -1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 8px;
+          border-top: 1px dashed var(--border);
+          text-align: left;
+        }
+
+        .estimate-label { display: inline; }
+
+        .total-section,
+        .percentile-section { padding: 16px 14px; }
+
+        .profile-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .bodyweight-field { grid-column: 1 / -1; }
+
+        .rank-row {
+          padding-inline: 0;
+        }
+
+        .foot {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 5px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="bar">
+      <div class="bar-inner">
+        <div class="brand-line">
+          <span class="brand">My1RM</span>
+          <span class="mock-label" data-i18n="mock">목업</span>
+        </div>
+        <div class="bar-actions">
+          <button id="langToggle" class="utility-button" type="button" aria-label="언어 전환">EN</button>
+          <button id="unitToggle" class="utility-button" type="button" aria-label="단위 전환">kg</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <div class="title-row">
+        <h1 id="pageTitle" data-i18n="title">3대 추정</h1>
+        <button id="resetButton" class="reset-button" type="button" data-i18n="reset">초기화</button>
+      </div>
+
+      <section class="calculator" aria-labelledby="pageTitle">
+        <div class="table-head" aria-hidden="true">
+          <span data-i18n="lift">종목</span>
+          <span data-i18n="weight">무게</span>
+          <span data-i18n="reps">횟수</span>
+          <span data-i18n="oneRm">예상 1RM</span>
+        </div>
+
+        <article class="lift-row" data-lift="squat">
+          <div class="lift-name" data-i18n="squat">스쿼트</div>
+          <div class="field weight-field">
+            <label class="field-label" for="squatWeight" data-i18n="weight">무게</label>
+            <div class="input-shell">
+              <input id="squatWeight" data-weight="squat" type="number" inputmode="decimal" min="0" step="0.5" aria-label="스쿼트 무게">
+              <span data-unit>kg</span>
+            </div>
+          </div>
+          <div class="field reps-field">
+            <label class="field-label" for="squatReps" data-i18n="reps">횟수</label>
+            <select id="squatReps" data-reps="squat" aria-label="스쿼트 횟수"></select>
+          </div>
+          <output class="estimate" for="squatWeight squatReps">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="squat" data-summary="squat">—</strong>
+          </output>
+        </article>
+
+        <article class="lift-row" data-lift="bench">
+          <div class="lift-name" data-i18n="bench">벤치프레스</div>
+          <div class="field weight-field">
+            <label class="field-label" for="benchWeight" data-i18n="weight">무게</label>
+            <div class="input-shell">
+              <input id="benchWeight" data-weight="bench" type="number" inputmode="decimal" min="0" step="0.5" aria-label="벤치프레스 무게">
+              <span data-unit>kg</span>
+            </div>
+          </div>
+          <div class="field reps-field">
+            <label class="field-label" for="benchReps" data-i18n="reps">횟수</label>
+            <select id="benchReps" data-reps="bench" aria-label="벤치프레스 횟수"></select>
+          </div>
+          <output class="estimate" for="benchWeight benchReps">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="bench" data-summary="bench">—</strong>
+          </output>
+        </article>
+
+        <article class="lift-row" data-lift="deadlift">
+          <div class="lift-name" data-i18n="deadlift">데드리프트</div>
+          <div class="field weight-field">
+            <label class="field-label" for="deadliftWeight" data-i18n="weight">무게</label>
+            <div class="input-shell">
+              <input id="deadliftWeight" data-weight="deadlift" type="number" inputmode="decimal" min="0" step="0.5" aria-label="데드리프트 무게">
+              <span data-unit>kg</span>
+            </div>
+          </div>
+          <div class="field reps-field">
+            <label class="field-label" for="deadliftReps" data-i18n="reps">횟수</label>
+            <select id="deadliftReps" data-reps="deadlift" aria-label="데드리프트 횟수"></select>
+          </div>
+          <output class="estimate" for="deadliftWeight deadliftReps">
+            <span class="estimate-label" data-i18n="oneRm">예상 1RM</span>
+            <strong class="estimate-value" data-estimate="deadlift" data-summary="deadlift">—</strong>
+          </output>
+        </article>
+
+        <section class="total-section" aria-labelledby="totalTitle">
+          <div class="total-row">
+            <h2 id="totalTitle" data-i18n="totalTitle">예상 3대</h2>
+            <output class="total" aria-live="polite">
+              <span id="totalValue">—</span>
+              <span class="total-unit" data-unit>kg</span>
+            </output>
+          </div>
+          <details>
+            <summary data-i18n="formula">계산식</summary>
+            <p data-i18n="formulaValue">Epley·Brzycki·Lombardi 평균</p>
+          </details>
+        </section>
+
+        <section class="percentile-section" aria-labelledby="percentileTitle">
+          <div class="percentile-head">
+            <div>
+              <h2 id="percentileTitle" data-i18n="percentileTitle">예상 백분위</h2>
+              <span class="section-meta" data-i18n="demoBasis">데모 데이터 기준</span>
+            </div>
+            <output id="percentileValue" class="percentile-value" aria-live="polite">—</output>
+          </div>
+
+          <div class="profile-grid">
+            <div class="field bodyweight-field">
+              <label class="field-label" for="bodyweight" data-i18n="bodyweight">체중</label>
+              <div class="input-shell">
+                <input id="bodyweight" type="number" inputmode="decimal" min="0" step="0.5">
+                <span data-unit>kg</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="sex" data-i18n="sex">성별</label>
+              <select id="sex">
+                <option value="" data-i18n="choose">선택</option>
+                <option value="male" data-i18n="male">남성</option>
+                <option value="female" data-i18n="female">여성</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="age" data-i18n="age">나이대</label>
+              <select id="age">
+                <option value="" data-i18n="choose">선택</option>
+                <option value="17" data-i18n="under18">18세 미만</option>
+                <option value="21">18–23</option>
+                <option value="29">24–34</option>
+                <option value="39">35–44</option>
+                <option value="49">45–54</option>
+                <option value="59">55–64</option>
+                <option value="70">65+</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="rank-row" aria-labelledby="rankTitle">
+        <div class="rank-main">
+          <div>
+            <h2 id="rankTitle" data-i18n="rankTitle">참여자 순위</h2>
+            <span id="rankNote" class="section-meta" data-i18n="rankMeta">기록 제출 후 표시</span>
+          </div>
+        </div>
+        <button id="rankButton" class="rank-button" type="button" disabled data-i18n="rankButton">순위 보기</button>
+        <p id="rankDemo" class="rank-demo" hidden data-i18n="rankDemo">목업에서는 전송하지 않음</p>
+      </section>
+
+      <footer class="foot">
+        <p data-i18n="footer">추정 도구 · 코칭·의료·판정 조언 아님</p>
+        <p data-i18n="mockFooter">목업 · 데이터 전송 없음</p>
+      </footer>
+    </main>
+
+    <script>
+      (() => {
+        const LIFTS = ['squat', 'bench', 'deadlift'];
+        const KG_PER_LB = 0.45359237;
+        const AGE_MULTIPLIERS = [
+          { min: 0, max: 17, value: 0.82 },
+          { min: 18, max: 23, value: 0.94 },
+          { min: 24, max: 34, value: 1 },
+          { min: 35, max: 44, value: 0.96 },
+          { min: 45, max: 54, value: 0.88 },
+          { min: 55, max: 64, value: 0.76 },
+          { min: 65, max: 130, value: 0.62 }
+        ];
+        const STANDARDS = {
+          male: {
+            squat: [[10, 0.75], [30, 1.2], [55, 1.65], [75, 2.15], [90, 2.75]],
+            bench: [[10, 0.5], [30, 0.85], [55, 1.2], [75, 1.55], [90, 1.95]],
+            deadlift: [[10, 0.9], [30, 1.45], [55, 2.05], [75, 2.65], [90, 3.25]]
+          },
+          female: {
+            squat: [[10, 0.42], [30, 0.72], [55, 1.05], [75, 1.42], [90, 2]],
+            bench: [[10, 0.25], [30, 0.45], [55, 0.68], [75, 0.95], [90, 1.32]],
+            deadlift: [[10, 0.58], [30, 0.98], [55, 1.45], [75, 1.95], [90, 2.6]]
+          }
+        };
+        const COPY = {
+          ko: {
+            mock: '목업',
+            title: '3대 추정',
+            reset: '초기화',
+            lift: '종목',
+            weight: '무게',
+            reps: '횟수',
+            oneRm: '예상 1RM',
+            squat: '스쿼트',
+            bench: '벤치프레스',
+            deadlift: '데드리프트',
+            totalTitle: '예상 3대',
+            formula: '계산식',
+            formulaValue: 'Epley·Brzycki·Lombardi 평균',
+            percentileTitle: '예상 백분위',
+            demoBasis: '데모 데이터 기준',
+            bodyweight: '체중',
+            sex: '성별',
+            age: '나이대',
+            choose: '선택',
+            male: '남성',
+            female: '여성',
+            under18: '18세 미만',
+            rankTitle: '참여자 순위',
+            rankMeta: '기록 제출 후 표시',
+            rankButton: '순위 보기',
+            rankDemo: '목업에서는 전송하지 않음',
+            footer: '추정 도구 · 코칭·의료·판정 조언 아님',
+            mockFooter: '목업 · 데이터 전송 없음'
+          },
+          en: {
+            mock: 'Mock-up',
+            title: 'SBD estimate',
+            reset: 'Reset',
+            lift: 'Lift',
+            weight: 'Weight',
+            reps: 'Reps',
+            oneRm: 'Est. 1RM',
+            squat: 'Squat',
+            bench: 'Bench press',
+            deadlift: 'Deadlift',
+            totalTitle: 'Estimated total',
+            formula: 'Formula',
+            formulaValue: 'Average of Epley, Brzycki, and Lombardi',
+            percentileTitle: 'Estimated percentile',
+            demoBasis: 'Demo data',
+            bodyweight: 'Bodyweight',
+            sex: 'Sex',
+            age: 'Age',
+            choose: 'Choose',
+            male: 'Male',
+            female: 'Female',
+            under18: 'Under 18',
+            rankTitle: 'Participant rank',
+            rankMeta: 'Shown after submission',
+            rankButton: 'View rank',
+            rankDemo: 'Mock-up: nothing sent',
+            footer: 'Estimate only · not coaching, medical, or judging advice',
+            mockFooter: 'Mock-up · no data sent'
+          }
+        };
+
+        const state = { lang: 'ko', unit: 'kg' };
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+        const round = (value, digits = 1) => Number(value.toFixed(digits));
+        const toKg = (value) => state.unit === 'lb' ? value * KG_PER_LB : value;
+        const fromKg = (value) => state.unit === 'lb' ? value / KG_PER_LB : value;
+
+        function estimate(weight, reps) {
+          const weightKg = toKg(Number(weight) || 0);
+          const safeReps = Math.min(15, Math.max(1, Number(reps) || 1));
+          if (!weightKg) return 0;
+          if (safeReps === 1) return round(weightKg);
+          const values = [
+            weightKg * (1 + safeReps / 30),
+            weightKg * (36 / (37 - safeReps)),
+            weightKg * safeReps ** 0.1
+          ];
+          return round(values.reduce((sum, value) => sum + value, 0) / values.length);
+        }
+
+        function interpolate(ratio, points) {
+          if (ratio <= 0) return 1;
+          if (ratio <= points[0][1]) {
+            return Math.round(Math.min(10, 1 + (ratio / points[0][1]) * 9));
+          }
+          for (let index = 1; index < points.length; index += 1) {
+            const low = points[index - 1];
+            const high = points[index];
+            if (ratio <= high[1]) {
+              const progress = (ratio - low[1]) / (high[1] - low[1]);
+              return Math.round(low[0] + progress * (high[0] - low[0]));
+            }
+          }
+          const last = points[points.length - 1];
+          return Math.round(Math.min(99, last[0] + ((ratio - last[1]) / (last[1] * 0.45)) * 9));
+        }
+
+        function ageMultiplier(age) {
+          const numericAge = Number(age);
+          const bucket = AGE_MULTIPLIERS.find((item) => numericAge >= item.min && numericAge <= item.max);
+          return bucket ? bucket.value : 1;
+        }
+
+        function percentile(estimates, bodyweight, sex, age) {
+          const bodyweightKg = toKg(Number(bodyweight));
+          const multiplier = ageMultiplier(age);
+          const scores = LIFTS.map((lift) => {
+            const adjustedRatio = (estimates[lift] / bodyweightKg) / multiplier;
+            return interpolate(adjustedRatio, STANDARDS[sex][lift]);
+          });
+          return Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length);
+        }
+
+        function displayWeight(valueKg) {
+          if (!valueKg) return '—';
+          const value = fromKg(valueKg);
+          return (state.unit === 'kg' ? round(value) : Math.round(value)) + ' ' + state.unit;
+        }
+
+        function collect() {
+          const estimates = {};
+          LIFTS.forEach((lift) => {
+            const weight = $('[data-weight="' + lift + '"]').value;
+            const reps = $('[data-reps="' + lift + '"]').value;
+            estimates[lift] = estimate(weight, reps);
+          });
+          return estimates;
+        }
+
+        function render() {
+          const estimates = collect();
+          const complete = LIFTS.every((lift) => estimates[lift] > 0);
+          const totalKg = complete
+            ? LIFTS.reduce((sum, lift) => sum + estimates[lift], 0)
+            : 0;
+          const bodyweight = $('#bodyweight').value;
+          const sex = $('#sex').value;
+          const age = $('#age').value;
+          const profileComplete = complete && Number(bodyweight) > 0 && sex && age;
+
+          LIFTS.forEach((lift) => {
+            $('[data-estimate="' + lift + '"]').textContent = displayWeight(estimates[lift]);
+          });
+
+          $('#totalValue').textContent = complete
+            ? (state.unit === 'kg' ? round(totalKg) : Math.round(fromKg(totalKg)))
+            : '—';
+
+          $('#percentileValue').textContent = profileComplete
+            ? percentile(estimates, bodyweight, sex, age)
+            : '—';
+
+          const rankReady = complete && sex && age;
+          $('#rankButton').disabled = !rankReady;
+          if (!rankReady) $('#rankDemo').hidden = true;
+        }
+
+        function applyCopy() {
+          const copy = COPY[state.lang];
+          document.documentElement.lang = state.lang;
+          $('[data-i18n="title"]').textContent = copy.title;
+          $$('[data-i18n]').forEach((node) => {
+            const key = node.dataset.i18n;
+            if (copy[key]) node.textContent = copy[key];
+          });
+          $('#langToggle').textContent = state.lang === 'ko' ? 'EN' : '한';
+          render();
+        }
+
+        function convertInputs(nextUnit) {
+          const factor = nextUnit === 'lb' ? 1 / KG_PER_LB : KG_PER_LB;
+          $$('[data-weight], #bodyweight').forEach((input) => {
+            if (!input.value) return;
+            const converted = Number(input.value) * factor;
+            input.value = nextUnit === 'lb' ? Math.round(converted) : round(converted, 1);
+          });
+          state.unit = nextUnit;
+          $$('[data-unit]').forEach((node) => { node.textContent = state.unit; });
+          $('#unitToggle').textContent = state.unit;
+          render();
+        }
+
+        $$('[data-reps]').forEach((select) => {
+          for (let reps = 1; reps <= 15; reps += 1) {
+            const option = document.createElement('option');
+            option.value = reps;
+            option.textContent = reps;
+            option.selected = reps === 5;
+            select.appendChild(option);
+          }
+        });
+
+        $$('input, select').forEach((control) => control.addEventListener('input', render));
+
+        $('#langToggle').addEventListener('click', () => {
+          state.lang = state.lang === 'ko' ? 'en' : 'ko';
+          applyCopy();
+        });
+
+        $('#unitToggle').addEventListener('click', () => {
+          convertInputs(state.unit === 'kg' ? 'lb' : 'kg');
+        });
+
+        $('#resetButton').addEventListener('click', () => {
+          $$('[data-weight], #bodyweight').forEach((input) => { input.value = ''; });
+          $$('[data-reps]').forEach((select) => { select.value = '5'; });
+          $('#sex').value = '';
+          $('#age').value = '';
+          $('#rankDemo').hidden = true;
+          render();
+        });
+
+        $('#rankButton').addEventListener('click', () => {
+          $('#rankDemo').hidden = false;
+        });
+
+        applyCopy();
+      })();
+    </script>
+  </body>
+</html>
