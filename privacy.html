@@ -22,7 +22,7 @@
     <main class="legal-page">
       <p class="eyebrow">Privacy</p>
       <h1>Privacy policy</h1>
-      <p>Last updated: 2026-08-01</p>
+      <p>Last updated: 2026-08-02</p>
       <p>
         My1RM does not require an account. One-rep-max calculations run in your
         browser. Usage measurement and ranking submissions are described below.
@@ -33,8 +33,8 @@
         My1RM records a short list of product milestones: page view, first
         calculator input, completed three-lift estimate, displayed demo
         percentile, and ranking submission attempt, success, or failure. Each
-        row contains only the milestone name, a random per-tab session ID, and a
-        server timestamp.
+        row contains only the milestone name, a random per-tab session ID, a
+        client-asserted internal flag, and a server timestamp.
       </p>
       <p>
         The usage endpoint rejects exercise weights, bodyweight, sex, age,
@@ -46,9 +46,23 @@
       <h2>Browser storage</h2>
       <p>
         The selected language and the operator's internal-device exclusion flag
-        are stored in localStorage. The random analytics session ID and the list
-        of milestones already sent in that tab are stored in sessionStorage.
-        A device marked as internal sends no usage-measurement requests.
+        are stored in localStorage. The random analytics session ID, a separate
+        random ranking session ID, and the list of milestones already sent in
+        that tab are stored in sessionStorage.
+        A device marked as internal sends the same minimal milestone requests
+        with its internal flag set; internal rows are excluded from the default
+        reports. Clearing site data removes this browser flag, so it must be set
+        again before another internal check. Explicitly turning the internal
+        flag on or off starts a fresh analytics tab session so internal and
+        external milestones are not mixed in one session.
+      </p>
+
+      <h2>Hosting analytics</h2>
+      <p>
+        Cloudflare hosts this site, and Cloudflare Pages Web Analytics measures
+        aggregate traffic and performance separately from My1RM's D1 event rows.
+        Cloudflare states that Web Analytics does not collect or use visitors'
+        personal data and does not use cookies, localStorage, or fingerprinting.
       </p>
 
       <h2>Ranking records</h2>
@@ -57,7 +71,17 @@
         contains estimated squat, bench press, deadlift, and total one-rep max,
         selected sex and age band, and a coarse city and country derived from
         Cloudflare request metadata. Calculation and demo-percentile display do
-        not submit a ranking record.
+        not submit a ranking record. A separate random per-tab ranking key is
+        saved with the row only to replace a later submission from that tab;
+        it is not reused as an account or persistent visitor ID.
+      </p>
+      <p>
+        A browser marked as internal receives a no-store confirmation. My1RM
+        does not query aggregate standing data or save an operator ranking
+        submission for that request. External ranking responses contain only
+        aggregate standing numbers and whether the row was stored; they do not
+        return the stored city or country. There is no public endpoint that
+        lists ranking records.
       </p>
       <p>
         My1RM does not read or store the raw client IP in its D1 tables. Ranking

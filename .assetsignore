@@ -1,0 +1,16 @@
+# Defense-in-depth for a future Workers static-assets deployment.
+# Pages deploys only the allowlisted dist output from scripts/build-public.mjs.
+/.git/
+/.github/
+/agent_docs/
+/docs/
+/migrations/
+/scripts/
+/tests/
+/*.md
+/.gitignore
+/.assetsignore
+/package.json
+/package-lock.json
+/schema.sql
+/wrangler.toml

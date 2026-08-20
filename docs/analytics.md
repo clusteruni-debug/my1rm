@@ -10,60 +10,86 @@ browser-tab sessions, not verified unique people.
 3. `estimate_completed`
 4. `percentile_viewed`
 5. `rank_submit_attempt`
-6. `rank_submit_success`
-7. `rank_submit_failure`
+6. `rank_submit_success` or `rank_submit_failure`
 
-Each session can store each milestone once. The browser sends only
-`session_id` and `event_name`; the server adds the timestamp. Ranking data stays
-in the separate `records` table and is written only after the ranking button is
-pressed.
+The browser queues milestones in this order and tries each request at most three
+times. Permanent client rejections and exhausted transient failures are settled
+so later renders do not retry forever. A successful milestone is stored once per
+tab session. The event request contains
+only `session_id`, `event_name`, and the boolean `is_internal`; the server
+adds the timestamp. The endpoint rejects exercise, body, demographic, location,
+raw-IP, and extra fields.
 
-## Exclude the operator device
+Ranking data stays in the separate `records` table and is written only after
+the ranking button is pressed. Its random per-tab key is distinct from the
+analytics session ID. A tab has at most one external ranking row; another external
+submission from that tab replaces its prior row. A browser marked as internal
+receives a no-store acknowledgement and neither queries cohort standings nor
+writes or replaces a row in `records`.
 
-Open this URL once on each device/browser used for internal checks:
+## Mark the operator browser
+
+Open this URL once in each browser profile used for internal checks:
 
 ```text
 https://my1rm.pages.dev/?internal=1
 ```
 
-The query parameter is removed from the address bar and the exclusion remains
-in localStorage. An excluded device sends no `/api/events` requests. Re-enable
-measurement on that browser with:
+The query parameter is removed from the address bar and the flag remains in
+localStorage. The browser still sends the same minimal milestone payload with
+`is_internal: true`, making the exclusion visible and auditable. Every default
+report filters those rows with `is_internal = 0`. Applying either `?internal=1`
+or `?internal=0` starts a fresh analytics tab session, preventing one session
+from being split between internal and external reporting. Ranking requests also
+carry the flag; internal ranking requests return without reading or writing the
+ranking table.
+
+Re-enable external measurement on that browser with:
 
 ```text
 https://my1rm.pages.dev/?internal=0
 ```
 
-The flag is not retroactive. Sessions recorded before the device was excluded
-remain in D1.
+This flag is client-asserted and scoped to one browser profile. Clearing site
+data removes it. It is not retroactive: rows stored before the flag changed keep
+their original value.
 
-## Apply the table
+## Apply the schema
 
-From `projects/my1rm`:
+From `projects/my1rm`, first inspect the deployed ranking columns:
 
 ```powershell
-npx --yes wrangler@latest d1 execute my1rm-db --remote --file=schema.sql
+npx --yes wrangler@latest d1 execute my1rm --remote --command="PRAGMA table_info(records);"
 ```
 
-`schema.sql` is additive and idempotent. It keeps the existing ranking table and
-adds `behavior_events`.
+For the existing production database, if `session_id` is absent, apply the
+one-time migration before the full schema:
+
+```powershell
+npx --yes wrangler@latest d1 execute my1rm --remote --file=migrations/0002_rank_session_id.sql
+npx --yes wrangler@latest d1 execute my1rm --remote --file=schema.sql
+```
+
+Do not rerun the migration after the column exists. Fresh databases need only
+`schema.sql`. Existing rows remain valid with a null `session_id`; the partial
+unique index applies only to new session-linked rows.
 
 ## Read the report
 
 ```powershell
-npx --yes wrangler@latest d1 execute my1rm-db --remote --file=scripts/analytics-report.sql
+npx --yes wrangler@latest d1 execute my1rm --remote --file=scripts/analytics-report.sql
 ```
 
 The report returns:
 
-- all-time funnel counts and conversion rates;
-- external sessions for 24 hours, 7 days, 30 days, and all time;
-- a 30-day daily funnel;
-- the 100 most recent milestones, grouped by the first eight characters of the
-  random session key.
+- an ordered all-time funnel whose stages are nested, so conversion cannot
+  exceed 100%;
+- active sessions and visits for 24 hours, 7 days, 30 days, and all time;
+- 30 KST calendar-day cohorts;
+- the 100 most recent external milestones.
 
-Every query includes `is_internal = 0`. The public site exposes no analytics
-read endpoint.
+Every query excludes internal rows. The public site exposes no analytics read
+endpoint.
 
 ## Interpretation
 
@@ -72,6 +98,6 @@ read endpoint.
   all three lifts.
 - `estimate_completed`: produced an SBD total.
 - `percentile_viewed`: also completed sex, age, and bodyweight fields.
-- `rank_submit_success`: created a participant ranking record.
-- A new tab creates a new session. Reloads in the same tab reuse the same session
-  and do not add duplicate milestones.
+- `rank_submit_success`: created or updated that tab session's ranking row.
+- A new tab creates a new session. Reloads in the same tab reuse the session and
+  do not add duplicate milestones.

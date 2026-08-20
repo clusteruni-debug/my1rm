@@ -1,4 +1,5 @@
 -- my1rm visitor ranking — anonymous 1RM records (no IP, no account stored)
+-- session_id is a ranking-only per-tab key and is distinct from behavior_events
 CREATE TABLE IF NOT EXISTS records (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   squat_kg REAL NOT NULL DEFAULT 0,
@@ -9,7 +10,8 @@ CREATE TABLE IF NOT EXISTS records (
   age_bucket TEXT NOT NULL,
   country TEXT,
   city TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  session_id TEXT CHECK (length(session_id) BETWEEN 20 AND 80)
 );
 
 CREATE INDEX IF NOT EXISTS idx_city_total ON records (city, total_kg);
@@ -17,6 +19,9 @@ CREATE INDEX IF NOT EXISTS idx_country_total ON records (country, total_kg);
 CREATE INDEX IF NOT EXISTS idx_total ON records (total_kg);
 -- cohort percentile: WHERE sex = ? AND age_bucket = ? [AND total_kg < ?]
 CREATE INDEX IF NOT EXISTS idx_sex_age_total ON records (sex, age_bucket, total_kg);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_records_session
+  ON records (session_id)
+  WHERE session_id IS NOT NULL;
 -- anonymous behavior funnel — one row per milestone per browser-tab session
 -- session_id is random and session-scoped; no lift, body, demographic, geo, or IP data
 CREATE TABLE IF NOT EXISTS behavior_events (

@@ -5,6 +5,7 @@
   const LANG_KEY = 'my1rm_lang_v1';
   const INTERNAL_KEY = 'my1rm_internal_device_v1';
   const ANALYTICS_SESSION_KEY = 'my1rm_analytics_session_v1';
+  const RANK_SESSION_KEY = 'my1rm_rank_session_v1';
   const ANALYTICS_SENT_KEY = 'my1rm_analytics_sent_v1';
 
   const SBD_LIFTS = [
@@ -237,21 +238,27 @@
   const I18N = {
     ko: {
       title: '3대 추정', reset: '초기화', lift: '종목', weight: '무게', reps: '횟수', oneRm: '예상 1RM',
+      squatWeight: '스쿼트 무게', squatReps: '스쿼트 횟수', benchWeight: '벤치프레스 무게',
+      benchReps: '벤치프레스 횟수', deadliftWeight: '데드리프트 무게', deadliftReps: '데드리프트 횟수',
       squat: '스쿼트', bench: '벤치프레스', deadlift: '데드리프트', total: '예상 3대',
       formula: '계산식', formulaNote: 'Epley · Brzycki · Lombardi 평균', percentile: '예상 백분위',
       demoNote: '데모 데이터 기준', sex: '성별', age: '나이', bodyweight: '체중', select: '선택',
       male: '남', female: '여', rank: '참여자 순위', rankNote: '기록 제출 후 표시',
       rankButton: '순위 보기', rankLoading: '제출 중', rankError: '제출 실패', rankFirst: '첫 기록',
+      rankInternal: '저장 안 함',
       rankTop: '상위', rankCohort: '동일 성별·나이대', footer: '추정 도구 · 코칭·의료·판정 조언 아님',
       privacy: '개인정보', terms: '약관', methodology: '계산 방식',
     },
     en: {
       title: 'SBD estimate', reset: 'Reset', lift: 'Lift', weight: 'Weight', reps: 'Reps', oneRm: 'Est. 1RM',
+      squatWeight: 'Squat weight', squatReps: 'Squat reps', benchWeight: 'Bench press weight',
+      benchReps: 'Bench press reps', deadliftWeight: 'Deadlift weight', deadliftReps: 'Deadlift reps',
       squat: 'Squat', bench: 'Bench press', deadlift: 'Deadlift', total: 'Estimated total',
       formula: 'Formula', formulaNote: 'Average of Epley · Brzycki · Lombardi', percentile: 'Est. percentile',
       demoNote: 'Demo data', sex: 'Sex', age: 'Age', bodyweight: 'Bodyweight', select: 'Select',
       male: 'M', female: 'F', rank: 'Participant rank', rankNote: 'Shown after submitting',
       rankButton: 'See rank', rankLoading: 'Submitting', rankError: 'Submit failed', rankFirst: 'First record',
+      rankInternal: 'Not saved',
       rankTop: 'Top', rankCohort: 'Same sex and age band', footer: 'Estimate only · not coaching, medical, or judging advice',
       privacy: 'Privacy', terms: 'Terms', methodology: 'Methodology',
     },
@@ -259,14 +266,19 @@
 
   const state = { unit: 'kg' };
   const dom = {};
-  const inFlightEvents = new Set();
+  const pendingEvents = new Set();
+  const EVENT_MAX_ATTEMPTS = 3;
   let lang = 'ko';
   let internalFallback = false;
   let sessionIdFallback = null;
+  let rankSessionIdFallback = null;
   let sentFallback = new Set();
+  let eventQueue = Promise.resolve();
   let rankSubmitting = false;
   let rankSubmitted = false;
   let lastRankResult = null;
+  let rankRequestVersion = 0;
+  let rankAbortController = null;
 
   function detectLang() {
     try {
@@ -306,6 +318,15 @@
       // The current page still follows the requested flag.
     }
 
+    sessionIdFallback = null;
+    sentFallback = new Set();
+    try {
+      sessionStorage.removeItem(ANALYTICS_SESSION_KEY);
+      sessionStorage.removeItem(ANALYTICS_SENT_KEY);
+    } catch (_error) {
+      // The new in-memory analytics session still keeps the flag boundary clean.
+    }
+
     url.searchParams.delete('internal');
     const cleanUrl = `${url.pathname}${url.search}${url.hash}`;
     try {
@@ -327,7 +348,8 @@
     if (globalScope.crypto && typeof globalScope.crypto.randomUUID === 'function') {
       return globalScope.crypto.randomUUID();
     }
-    return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+    const randomPart = () => Math.random().toString(36).slice(2).padEnd(11, '0').slice(0, 11);
+    return `${Date.now().toString(36)}_${randomPart()}_${randomPart()}`;
   }
 
   function analyticsSessionId() {
@@ -344,19 +366,37 @@
     }
   }
 
+  function rankSessionId() {
+    try {
+      let value = sessionStorage.getItem(RANK_SESSION_KEY);
+      if (!value) {
+        value = newSessionId();
+        sessionStorage.setItem(RANK_SESSION_KEY, value);
+      }
+      return value;
+    } catch (_error) {
+      if (!rankSessionIdFallback) rankSessionIdFallback = newSessionId();
+      return rankSessionIdFallback;
+    }
+  }
+
   function sentEvents() {
+    const sent = new Set(sentFallback);
     try {
       const saved = JSON.parse(sessionStorage.getItem(ANALYTICS_SENT_KEY) || '[]');
-      return new Set(Array.isArray(saved) ? saved : []);
+      if (Array.isArray(saved)) {
+        saved.forEach((name) => sent.add(name));
+      }
     } catch (_error) {
-      return new Set(sentFallback);
+      // In-memory state remains authoritative when storage cannot be read.
     }
+    return sent;
   }
 
   function rememberEvent(name) {
     const sent = sentEvents();
     sent.add(name);
-    sentFallback = sent;
+    sentFallback = new Set(sent);
     try {
       sessionStorage.setItem(ANALYTICS_SENT_KEY, JSON.stringify(Array.from(sent)));
     } catch (_error) {
@@ -364,30 +404,47 @@
     }
   }
 
-  async function trackMilestone(eventName) {
-    if (isInternalDevice()) return false;
-    const sent = sentEvents();
-    if (sent.has(eventName) || inFlightEvents.has(eventName)) return false;
-
-    inFlightEvents.add(eventName);
-    try {
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          session_id: analyticsSessionId(),
-          event_name: eventName,
-        }),
-        keepalive: true,
-      });
-      if (!response.ok) return false;
-      rememberEvent(eventName);
-      return true;
-    } catch (_error) {
-      return false;
-    } finally {
-      inFlightEvents.delete(eventName);
+  async function sendMilestone(eventName) {
+    for (let attempt = 0; attempt < EVENT_MAX_ATTEMPTS; attempt += 1) {
+      try {
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            session_id: analyticsSessionId(),
+            event_name: eventName,
+            is_internal: isInternalDevice(),
+          }),
+          keepalive: true,
+        });
+        if (response.ok) {
+          rememberEvent(eventName);
+          return true;
+        }
+        if (response.status >= 400 && response.status < 500) {
+          rememberEvent(eventName);
+          return false;
+        }
+      } catch (_error) {
+        // Retry transient transport failures within the fixed per-session cap.
+      }
     }
+    // Stop later render() calls from turning a persistent outage into unbounded traffic.
+    rememberEvent(eventName);
+    return false;
+  }
+
+  function trackMilestone(eventName) {
+    if (sentEvents().has(eventName) || pendingEvents.has(eventName)) {
+      return Promise.resolve(false);
+    }
+
+    pendingEvents.add(eventName);
+    const request = eventQueue.then(() => sendMilestone(eventName));
+    eventQueue = request.then(() => undefined, () => undefined);
+    return request.finally(() => {
+      pendingEvents.delete(eventName);
+    });
   }
 
   function fmt(value, places = 1) {
@@ -423,6 +480,7 @@
   }
 
   function render() {
+    trackMilestone('page_view');
     const profile = calculateProfile(buildInput());
     const liftComplete = {};
 
@@ -452,6 +510,9 @@
     document.querySelectorAll('[data-i18n]').forEach((node) => {
       node.textContent = t(node.getAttribute('data-i18n'));
     });
+    document.querySelectorAll('[data-aria-i18n]').forEach((node) => {
+      node.setAttribute('aria-label', t(node.getAttribute('data-aria-i18n')));
+    });
     dom.langToggle.textContent = lang === 'ko' ? 'EN' : '한';
     dom.unitToggle.textContent = state.unit;
     render();
@@ -472,6 +533,7 @@
   }
 
   function convertUnits() {
+    invalidateRankResult();
     const nextUnit = state.unit === 'kg' ? 'lb' : 'kg';
     ['squatWeight', 'benchWeight', 'deadliftWeight', 'bodyweight'].forEach((id) => {
       const input = document.getElementById(id);
@@ -496,6 +558,12 @@
   }
 
   function invalidateRankResult() {
+    rankRequestVersion += 1;
+    if (rankAbortController) {
+      rankAbortController.abort();
+      rankAbortController = null;
+    }
+    rankSubmitting = false;
     rankSubmitted = false;
     lastRankResult = null;
     dom.rankResult.hidden = true;
@@ -509,6 +577,11 @@
       dom.rankValue.textContent = t('rankError');
       dom.rankMeta.textContent = '';
       dom.rankResult.classList.add('is-error');
+      return;
+    }
+    if (data.stored === false) {
+      dom.rankValue.textContent = t('rankInternal');
+      dom.rankMeta.textContent = '';
       return;
     }
     if (data.percentile == null || data.cohortTotal <= 1) {
@@ -526,6 +599,16 @@
   async function fetchRank() {
     if (dom.rankButton.disabled || rankSubmitting) return;
     const profile = calculateProfile(buildInput());
+    const rankLifts = Object.values(profile.lifts).map((lift) => lift.oneRmKg);
+    if (rankLifts.some((value) => !Number.isFinite(value) || value <= 0 || value > 2000)
+      || !Number.isFinite(profile.totalKg) || profile.totalKg > 6000) {
+      renderRank({ error: true });
+      return;
+    }
+    const requestVersion = rankRequestVersion + 1;
+    const controller = new AbortController();
+    rankRequestVersion = requestVersion;
+    rankAbortController = controller;
     rankSubmitting = true;
     render();
     trackMilestone('rank_submit_attempt');
@@ -534,24 +617,31 @@
       const response = await fetch('/api/rank', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
+          session_id: rankSessionId(),
           total_kg: profile.totalKg,
           squat_kg: profile.lifts.squat.oneRmKg,
           bench_kg: profile.lifts.bench.oneRmKg,
           deadlift_kg: profile.lifts.deadlift.oneRmKg,
           sex: dom.sex.value,
           age_bucket: getAgeBucket(dom.age.value).label,
+          is_internal: isInternalDevice(),
         }),
       });
       if (!response.ok) throw new Error('rank request failed');
       const rankData = await response.json();
+      if (requestVersion !== rankRequestVersion) return;
       renderRank(rankData);
       rankSubmitted = true;
       trackMilestone('rank_submit_success');
-    } catch (_error) {
+    } catch (error) {
+      if (requestVersion !== rankRequestVersion || error.name === 'AbortError') return;
       renderRank({ error: true });
       trackMilestone('rank_submit_failure');
     } finally {
+      if (requestVersion !== rankRequestVersion) return;
+      if (rankAbortController === controller) rankAbortController = null;
       rankSubmitting = false;
       render();
     }
@@ -599,7 +689,6 @@
 
     setLang(lang);
     applyCopy();
-    trackMilestone('page_view');
   }
 
   document.addEventListener('DOMContentLoaded', setupBrowser);
