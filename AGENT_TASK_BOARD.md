@@ -12,6 +12,7 @@ Generated-by: scripts/extract-project-board.py
 
 ## Task Board
 ### Active Tasks - project:my1rm
+<!-- Verified 2026-08-27: underlying plan docs/plans/done/PLAN-MY1RM-D1-DOC-SYNC.md status=DEFERRED (user decision 2026-07-22, commit 9ea3415) — row below not yet rotated/closed to match. -->
 | TASK-ID | Owner-Agent | Status | Scope-Files | Notes | Change-Type |
 |---------|-------------|--------|-------------|-------|-------------|
 | MY1RM-D1-DOC-SYNC-Y0-20260722-01 | codex | blocked | none (registration recovery only) | Execute My1RM plan Y0 and the conflict-free AGENTS verification portion of Y1 so documentation matches the shipped anonymous D1 ranking path.; Verify: npm run check; node --check functions/api/rank.js; python scripts/regen-domain-map.py --check --project my1rm; plan lint; git diff --check; Approved: user [write]; Operations: write | docs-only |
