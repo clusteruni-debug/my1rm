@@ -36,15 +36,6 @@
 - [ ] `index.html` opens standalone in a browser without console errors
 - [ ] Percentile output stays labeled as demo and ranking remains explicit-submit
 
-## Git Permissions (Common, cannot be overridden)
-- Follow workspace root `AGENTS.md` section 3 and section 16 for Codex git permissions.
-- Codex may create a local commit only through the root gated commit flow; `git push` remains forbidden.
-- Task-specific review-only scopes may be stricter, but this project file must not globally override the root table.
-## Multi-Platform Execution Context (Common)
-- This project operates on the premise of Windows source files + WSL /mnt/c/... accessing the same files.
-- External (laptop/mobile) work defaults to SSH -> WSL.
-- Execution environment: **Windows default** (remote access via SSH -> WSL for editing, execution constraints follow project rules)
-- When confused about paths, refer to the "Development Environment (Multi-Platform)" section in CLAUDE.md first.
 <!-- BEGIN: WORKSPACE_POLICY_INHERITANCE -->
 ## Workspace Policy Inheritance
 

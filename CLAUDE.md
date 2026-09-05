@@ -30,7 +30,7 @@ Run from this directory:
 npm run check
 ```
 
-`npm run check` performs module-typed stdin checks for both Pages Functions.
+`npm run check` runs the static build, syntax-checks `app.js` and all three Pages Functions (module-typed stdin for `events.js` / `rank.js`), then runs the calculator, analytics, and rank test suites.
 
 For UI smoke, open `index.html` directly or serve the directory with a local
 static server. Pages Function endpoints are unavailable in standalone-file mode.
@@ -43,10 +43,4 @@ static server. Pages Function endpoints are unavailable in standalone-file mode.
 - Do not expand the allowlisted analytics or ranking payloads without an explicit
   privacy review and task scope update.
 
-## Reference Ledger
-Web-research facts for this project accumulate in `docs/reference/`. Before re-fetching an
-external source, run `python -X utf8 scripts/check-web-reference-ledger.py --query "<topic>"`
-from the workspace root and prefer an existing doc whose `last_verified` is current; after
-research that changes code or decisions, persist a doc with `last_verified` / `sources` /
-`reliability` (primary | vendor-doc | analyst | secondary) frontmatter. Full rule + helpfulness
-scoring: root CLAUDE.md "Web Research — Reference Ledger".
+Web research: root CLAUDE.md "Web Research — Reference Ledger" (project findings accumulate in docs/reference/).
