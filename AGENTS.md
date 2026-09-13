@@ -33,7 +33,7 @@
 ## Definition of Done (Pre-PR Checklist)
 
 - [ ] `npm run check` — app/API syntax plus calculator, analytics, and rank tests pass
-- [ ] `index.html` opens standalone in a browser without console errors
+- [ ] UI, CSS, calculator interaction or PWA changes: `index.html` opens standalone in a real browser without console errors; exercise the affected flow. Docs and API-only changes do not require this browser pass.
 - [ ] Percentile output stays labeled as demo and ranking remains explicit-submit
 
 <!-- BEGIN: WORKSPACE_POLICY_INHERITANCE -->
